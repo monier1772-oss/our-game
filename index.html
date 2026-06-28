@@ -3,464 +3,465 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Game Chat 🎮🕹️</title>
+    <title>Our Game</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: #0f0c1b;
+            background-color: #0b0914;
             color: #fff;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
         }
 
+        /* جعل الواجهات تمتد على كامل الشاشة مثل الاسكرينات تماماً */
         .screen {
-            width: 100%;
-            max-width: 480px;
+            width: 100vw;
             height: 100vh;
-            background: #151026;
+            background: #0b0914;
             display: flex;
             flex-direction: column;
             position: relative;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
-        }
-
-        @media (min-width: 481px) {
-            .screen {
-                height: 92vh;
-                border-radius: 24px;
-                border: 2px solid #3d2b5c;
-            }
         }
 
         .hidden { display: none !important; }
 
-        /* --- Welcome Screen --- */
+        /* --- واجهة الاختيار مطابقة لـ image_e02ced.png --- */
         #welcome-screen {
             justify-content: center;
             align-items: center;
+            background: #0b0914;
+        }
+
+        .login-card {
+            background: #11101d;
+            border: 1px solid #1a1829;
+            border-radius: 24px;
+            padding: 40px 30px;
+            width: 90%;
+            max-width: 400px;
             text-align: center;
-            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
         }
 
-        .logo-area {
-            margin-bottom: 40px;
-        }
-
-        .main-emoji {
-            font-size: 4rem;
+        .main-icon {
+            font-size: 3.5rem;
             display: block;
             margin-bottom: 15px;
-            animation: float 3s ease-in-out infinite;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        h1 {
-            font-size: 3rem;
-            color: #00f2fe;
-            text-shadow: 0 0 15px rgba(0, 242, 254, 0.6);
-            text-transform: uppercase;
-            letter-spacing: 2px;
+        .login-card h1 {
+            font-size: 1.8rem;
+            color: #897cb5;
+            font-weight: 600;
+            margin-bottom: 8px;
         }
 
         .subtitle {
-            color: #a29bfe;
-            font-size: 1.1rem;
-            margin-bottom: 40px;
+            color: #514e6b;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
         }
 
         .character-container {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
             width: 100%;
-            max-width: 320px;
         }
 
         .char-btn {
-            background: #21193e;
-            border: 2px solid #3d2b5c;
-            border-radius: 16px;
-            padding: 20px;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            display: flex;
-            align-items: center;
-            gap: 20px;
             width: 100%;
+            background: #161525;
+            border: 1px solid #23213a;
+            border-radius: 14px;
+            padding: 16px;
+            color: #bcbbcb;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
         }
 
         .char-btn:hover {
-            border-color: #00f2fe;
-            background: #2a204e;
-            transform: scale(1.03);
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+            border-color: #383459;
+            background: #1b1a2e;
+            color: #fff;
         }
 
-        .avatar { font-size: 2.5rem; }
-        .char-info { text-align: left; }
-        .char-info h2 { font-size: 1.3rem; color: #fff; }
-        .char-info p { font-size: 0.9rem; color: #746893; }
-
-        /* --- Chat Screen --- */
+        /* --- واجهة الشات مطابقة لـ image_e02c98.png --- */
         .chat-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 15px 20px;
-            background: #1b1433;
-            border-bottom: 1px solid #2a204e;
+            padding: 15px 25px;
+            background: #0b0914;
+            border-bottom: 1px solid #151322;
         }
 
-        .header-user {
+        .player-indicator-left {
+            font-size: 0.85rem;
+            color: #4b4865;
+        }
+
+        .header-right {
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
+        .chat-title-info {
+            text-align: right;
+        }
+
+        .chat-title-info h3 {
+            font-size: 0.95rem;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .chat-title-info span {
+            font-size: 0.75rem;
+            color: #2ecc71;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+
+        .header-avatar {
+            width: 36px;
+            height: 36px;
+            background: #312e4f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            border: 1px solid #443f6d;
+        }
+
         .back-btn {
             background: none;
             border: none;
-            color: #a29bfe;
-            font-size: 1rem;
+            color: #4b4865;
+            font-size: 0.8rem;
             cursor: pointer;
-            padding: 5px;
-            border: 1px solid #3d2b5c;
-            border-radius: 8px;
-            padding: 5px 10px;
-        }
-
-        .back-btn:hover {
-            border-color: #00f2fe;
-            color: #00f2fe;
-        }
-
-        #current-user-tag {
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: #00f2fe;
+            margin-right: 10px;
+            text-decoration: underline;
         }
 
         .messages-container {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 30px;
             display: flex;
             flex-direction: column;
             gap: 15px;
-            background: #110d22;
-        }
-
-        /* Message Box styling */
-        .message-wrapper {
-            display: flex;
-            flex-direction: column;
-            max-width: 75%;
+            background: #0b0914;
             position: relative;
         }
 
-        .message-wrapper.sent {
-            align-self: flex-start;
-            text-align: left;
+        /* --- أنيميشن الـ Loading لـ Start the conversation --- */
+        .start-conversation-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            color: #4b4865;
+            font-size: 0.9rem;
+            pointer-events: none;
+            user-select: none;
         }
 
-        .message-wrapper.received {
-            align-self: flex-end;
-            text-align: left;
+        .loading-icon {
+            font-size: 2rem;
+            animation: pulse-glow 1.5s ease-in-out infinite;
         }
+
+        .loading-text {
+            animation: text-blink 1.5s linear infinite;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.15); opacity: 1; color: #5d54a4; }
+        }
+
+        @keyframes text-blink {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* ستيلات الرسايل المحسنة */
+        .message-wrapper {
+            display: flex;
+            flex-direction: column;
+            max-width: 70%;
+        }
+        .message-wrapper.sent { align-self: flex-start; }
+        .message-wrapper.received { align-self: flex-end; }
 
         .sender-name {
-            font-size: 0.8rem;
-            color: #746893;
+            font-size: 0.75rem;
+            color: #3e3b54;
             margin-bottom: 4px;
-            padding: 0 5px;
+            padding: 0 4px;
         }
 
         .message-box {
             padding: 12px 16px;
-            border-radius: 18px;
+            border-radius: 16px;
             font-size: 0.95rem;
             line-height: 1.4;
-            position: relative;
-            word-break: break-word;
             cursor: pointer;
-            transition: transform 0.2s;
         }
 
-        .message-box:active {
-            transform: scale(0.98);
-        }
+        .sent .message-box { background: #19162a; color: #fff; border-bottom-left-radius: 4px; border: 1px solid #231f3a;}
+        .received .message-box { background: #0c3e3f; color: #fff; border-bottom-right-radius: 4px; }
 
-        .sent .message-box {
-            background: #251b47;
-            color: #fff;
-            border-bottom-left-radius: 4px;
-            border: 1px solid #3d2b5c;
-        }
-
-        .received .message-box {
-            background: #006266;
-            color: #fff;
-            border-bottom-right-radius: 4px;
-        }
-
-        /* Reply context styling inside chat box */
         .reply-context-box {
-            background: rgba(0, 0, 0, 0.3);
-            border-left: 3px solid #00f2fe;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            color: #b5b0cd;
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 2px solid #5d54a4;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #7b74a8;
             margin-bottom: 6px;
         }
 
-        .message-img {
-            max-width: 100%;
-            border-radius: 12px;
-            margin-top: 5px;
-            display: block;
-        }
+        .message-img { max-width: 100%; border-radius: 10px; margin-top: 4px; display: block; }
 
-        .audio-player {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(0,0,0,0.2);
-            padding: 8px;
-            border-radius: 10px;
-            margin-top: 5px;
+        /* الفويس بلاير */
+        .audio-player { display: flex; align-items: center; gap: 10px; min-width: 160px; padding: 2px 0; }
+        .play-play-btn {
+            background: #5d54a4; border: none; width: 28px; height: 28px; border-radius: 50%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.75rem;
         }
+        .audio-wave-line { flex: 1; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; position: relative; overflow: hidden; }
+        .audio-progress { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: #5d54a4; }
+        .audio-duration { font-size: 0.75rem; color: #4b4865; }
 
-        /* Reactions on message */
         .message-reactions {
-            display: flex;
-            gap: 4px;
-            position: absolute;
-            bottom: -12px;
-            right: 10px;
-            background: #1b1433;
-            padding: 2px 6px;
-            border-radius: 10px;
-            border: 1px solid #3d2b5c;
-            font-size: 0.75rem;
+            display: flex; gap: 2px; position: absolute; bottom: -10px; right: 8px;
+            background: #0b0914; padding: 1px 5px; border-radius: 8px; border: 1px solid #1c192e; font-size: 0.7rem;
         }
 
-        /* Active reply box above input */
+        /* شريط الرد المقتبس */
         #reply-preview {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #1b1433;
-            padding: 8px 20px;
-            border-top: 1px solid #2a204e;
-            font-size: 0.9rem;
-            color: #a29bfe;
+            display: flex; align-items: center; justify-content: space-between;
+            background: #0b0914; padding: 8px 30px; border-top: 1px solid #151322; font-size: 0.85rem; color: #615c84;
         }
 
-        #reply-preview .close-reply {
-            cursor: pointer;
-            color: #ff7675;
-            font-weight: bold;
+        /* --- شريط الإدخال الفخم مطابق لأسفل image_e02c98.png --- */
+        .input-outer-container {
+            padding: 0 20px 20px 20px;
+            background: #0b0914;
         }
 
-        /* Pop-up reaction picker */
-        .reaction-picker {
-            position: absolute;
-            background: #21193e;
-            border: 1px solid #3d2b5c;
-            border-radius: 20px;
-            padding: 6px 12px;
-            display: flex;
-            gap: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            z-index: 100;
-            transform: scale(0);
-            transition: transform 0.2s ease;
-        }
-        .reaction-picker.active {
-            transform: scale(1);
-        }
-        .reaction-picker span {
-            font-size: 1.3rem;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-        .reaction-picker span:hover {
-            transform: scale(1.3);
-        }
-
-        /* Input Area controls */
         .chat-input-area {
             display: flex;
-            gap: 10px;
             align-items: center;
-            background: #1b1433;
-            padding: 15px 20px;
-            border-top: 1px solid #2a204e;
+            gap: 15px;
+            background: #11101d;
+            border: 1px solid #1a182e;
+            border-radius: 20px;
+            padding: 10px 20px;
+            width: 100%;
         }
 
         #msg-input {
             flex: 1;
-            background: #110d22;
-            border: 1px solid #2a204e;
+            background: transparent;
+            border: none;
             color: #fff;
-            padding: 12px 16px;
-            border-radius: 25px;
             outline: none;
             font-size: 0.95rem;
+            text-align: right;
         }
+        #msg-input::placeholder { color: #3b3852; }
 
-        #msg-input:focus {
-            border-color: #00f2fe;
+        .input-actions-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .icon-btn {
             background: none;
             border: none;
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             cursor: pointer;
-            color: #a29bfe;
+            color: #4f4b6e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: color 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
+        .icon-btn:hover { color: #897cb5; }
+        .send-main-btn { color: #5d54a4; }
+        .send-main-btn:hover { color: #897cb5; }
 
-        .icon-btn:hover {
-            color: #00f2fe;
+        /* وضع التسجيل الصوتي داخل الشريط ممتد العرض */
+        .recording-status {
+            display: flex; align-items: center; gap: 10px; color: #ff7675; font-size: 0.9rem; flex: 1; justify-content: flex-end;
         }
+        .wave-dot { width: 8px; height: 8px; background: #ff7675; border-radius: 50%; animation: pulse 0.8s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.5; } }
 
-        #voice-btn.recording {
-            color: #ff7675;
-            animation: pulse 1s infinite;
+        /* قفل الخيارات المنبثق عند الضغط المطول */
+        .action-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 9, 20, 0.85);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
         }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        #send-btn {
-            background: #00f2fe;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            color: #151026;
-            font-size: 1.1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            box-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
-        }
-
-        #send-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.6);
-        }
+        .action-overlay.active { opacity: 1; pointer-events: auto; }
+        .overlay-card { background: #11101d; border: 1px solid #1a182e; border-radius: 20px; padding: 20px; width: 260px; text-align: center; }
+        .reaction-row { display: flex; justify-content: space-around; margin-bottom: 15px; }
+        .reaction-row span { font-size: 1.6rem; cursor: pointer; transition: transform 0.1s; }
+        .reaction-row span:hover { transform: scale(1.2); }
+        .overlay-btn { width: 100%; background: #161525; border: 1px solid #23213a; color: #fff; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 0.9rem; }
+        .overlay-btn:hover { background: #5d54a4; }
     </style>
 </head>
 <body>
 
+    <!-- Welcome Screen (image_e02ced.png Style) -->
     <div id="welcome-screen" class="screen">
-        <div class="logo-area">
-            <span class="main-emoji">🕹️</span>
+        <div class="login-card">
+            <span class="main-icon">🕹️</span>
             <h1>Our Game</h1>
-        </div>
-        <p class="subtitle">Choose your character to start the live chat:</p>
-        
-        <div class="character-container">
-            <button class="char-btn" onclick="selectCharacter('Player 1')">
-                <span class="avatar">🎮</span>
-                <div class="char-info">
-                    <h2>Player 1</h2>
-                    <p>Click to join as Player 1</p>
-                </div>
-            </button>
+            <p class="subtitle">Choose your character</p>
             
-            <button class="char-btn" onclick="selectCharacter('Player 2')">
-                <span class="avatar">🕹️</span>
-                <div class="char-info">
-                    <h2>Player 2</h2>
-                    <p>Click to join as Player 2</p>
-                </div>
-            </button>
+            <div class="character-container">
+                <button class="char-btn" onclick="selectCharacter('Player 1', '🎮')">
+                    <span>Player 1</span>
+                    <span>🎮</span>
+                </button>
+                
+                <button class="char-btn" onclick="selectCharacter('Player 2', '🕹️')">
+                    <span>Player 2</span>
+                    <span>🕹️</span>
+                </button>
+            </div>
         </div>
     </div>
 
+    <!-- Chat Screen (image_e02c98.png Style) -->
     <div id="chat-screen" class="screen hidden">
         <div class="chat-header">
-            <div class="header-user">
-                <button onclick="goBack()" class="back-btn">← Switch Character</button>
-                <div id="current-user-tag">You: Player 1</div>
+            <div class="player-indicator-left" id="current-player-label">Player 1</div>
+            
+            <div class="header-right">
+                <button onclick="goBack()" class="back-btn">Exit</button>
+                <div class="chat-title-info">
+                    <h3 id="target-player-title">Chat with Player 2</h3>
+                    <span>Online <span class="dot"></span></span>
+                </div>
+                <div class="header-avatar" id="target-avatar-icon">🕹️</div>
             </div>
-            <div style="font-size: 0.8rem; color:#746893;">Local Live Simulation</div>
-        </div>
-
-        <div id="global-picker" class="reaction-picker">
-            <span onclick="addReaction('👍')">👍</span>
-            <span onclick="addReaction('😂')">😂</span>
-            <span onclick="addReaction('❤️')">❤️</span>
-            <span onclick="addReaction('😢')">😢</span>
         </div>
 
         <div class="messages-container" id="messages-container">
+            <!-- Loading / Start Conversation Element -->
+            <div id="loading-conversation" class="start-conversation-loading">
+                <span class="loading-icon">👾</span>
+                <span class="loading-text">!Start the conversation</span>
             </div>
-
-        <div id="reply-preview" class="hidden">
-            <span id="reply-preview-text">Replying to: ...</span>
-            <span class="close-reply" onclick="cancelReply()">✕</span>
         </div>
 
-        <div class="chat-input-area">
-            <button class="icon-btn" id="voice-btn" onclick="toggleVoiceRecord()" title="Record Mock Audio">🎙️</button>
-            
-            <label for="image-input" class="icon-btn" title="Send Image">
-                🖼️
-                <input type="file" id="image-input" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
-            </label>
-            
-            <input type="text" id="msg-input" placeholder="Type your message here..." onkeypress="handleKeyPress(event)">
-            <button id="send-btn" onclick="sendMessage()">🚀</button>
+        <!-- Pending Reply Context -->
+        <div id="reply-preview" class="hidden">
+            <span id="reply-preview-text">Replying...</span>
+            <span style="cursor:pointer; color:#ff7675;" onclick="cancelReply()">✕</span>
+        </div>
+
+        <!-- Luxury Full Width Input Container -->
+        <div class="input-outer-container">
+            <!-- Normal Mode -->
+            <div class="chat-input-area" id="input-bar-normal">
+                <input type="text" id="msg-input" placeholder="...Type a message" dir="rtl" onkeypress="handleKeyPress(event)">
+                
+                <div class="input-actions-left">
+                    <label for="image-input" class="icon-btn" title="Send Image">
+                        🖼️
+                        <input type="file" id="image-input" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+                    </label>
+                    <button class="icon-btn" onclick="startVoiceRecord()" title="Record Voice">🎙️</button>
+                    <button class="icon-btn send-main-btn" onclick="sendMessage()">🚀</button>
+                </div>
+            </div>
+
+            <!-- Recording Mode Inside Same Frame -->
+            <div class="chat-input-area hidden" id="input-bar-recording">
+                <div class="recording-status">
+                    <span class="wave-dot"></span>
+                    <span>Recording: <span id="record-timer">00:00</span></span>
+                </div>
+                <button class="icon-btn" style="color: #ff7675; font-size: 0.85rem; margin-left: 15px;" onclick="cancelVoiceRecord()">Cancel</button>
+                <button class="icon-btn" style="color: #2ecc71; font-size: 1.1rem;" onclick="stopAndSendVoice()">✓</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Long Press Action Pop-up Modal -->
+    <div id="action-overlay" class="action-overlay" onclick="closeOverlay()">
+        <div class="overlay-card" onclick="event.stopPropagation()">
+            <div class="reaction-row">
+                <span onclick="addReaction('👍')">👍</span>
+                <span onclick="addReaction('😂')">😂</span>
+                <span onclick="addReaction('❤️')">❤️</span>
+                <span onclick="addReaction('😢')">😢</span>
+            </div>
+            <button class="overlay-btn" onclick="triggerReply()">Reply to Message</button>
         </div>
     </div>
 
     <script>
-        // Pre-loaded conversations
-        let messages = [
-            { id: 1, sender: "Player 1", text: "Welcome to the game! Ready for the challenge? 🎮", type: "text", replyTo: null, reactions: [] },
-            { id: 2, sender: "Player 2", text: "Always ready! 🕹️ Send your media or text.", type: "text", replyTo: null, reactions: [] }
-        ];
-
+        // تحميل البيانات من الـ localStorage لتجنب المسح عند الريفرش
+        let messages = JSON.parse(localStorage.getItem('og_game_chat_data')) || [];
         let currentUser = "Player 1";
+        let activeTargetId = null;
         let activeReplyId = null;
-        let activeMessageIdForReaction = null;
-        let isRecording = false;
+        
+        let recordInterval;
+        let recordSeconds = 0;
+        let pressTimer;
 
         window.onload = function() {
             renderMessages();
         };
 
-        function selectCharacter(player) {
+        function selectCharacter(player, emoji) {
             currentUser = player;
-            document.getElementById('current-user-tag').innerText = `You: ${currentUser}`;
+            
+            // تخصيص بيانات الهيدر بناءً على اختيارك لمطابقة الصورة تماماً
+            document.getElementById('current-player-label').innerText = currentUser;
+            const targetPlayer = (currentUser === "Player 1") ? "Player 2" : "Player 1";
+            const targetEmoji = (currentUser === "Player 1") ? "🕹️" : "🎮";
+            
+            document.getElementById('target-player-title').innerText = `Chat with ${targetPlayer}`;
+            document.getElementById('target-avatar-icon').innerText = targetEmoji;
+
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('chat-screen').classList.remove('hidden');
             renderMessages();
@@ -473,70 +474,121 @@
 
         function renderMessages() {
             const container = document.getElementById('messages-container');
-            container.innerHTML = "";
+            
+            // إخفاء أو إظهار الـ Loading Animation الخاص بجملة !Start the conversation
+            const loadingEl = document.getElementById('loading-conversation');
+            if (messages.length === 0) {
+                if(!loadingEl) {
+                    container.innerHTML = `
+                        <div id="loading-conversation" class="start-conversation-loading">
+                            <span class="loading-icon">👾</span>
+                            <span class="loading-text">!Start the conversation</span>
+                        </div>`;
+                } else {
+                    loadingEl.classList.remove('hidden');
+                }
+            } else {
+                if(loadingEl) loadingEl.classList.add('hidden');
+                // مسح الرسايل القديمة لإعادة بنائها
+                const items = container.querySelectorAll('.message-wrapper');
+                items.forEach(el => el.remove());
+            }
 
             messages.forEach(msg => {
-                const isMyMessage = (msg.sender === currentUser);
-                
+                const isMine = (msg.sender === currentUser);
                 const wrapper = document.createElement('div');
-                wrapper.className = `message-wrapper ${isMyMessage ? 'sent' : 'received'}`;
+                wrapper.className = `message-wrapper ${isMine ? 'sent' : 'received'}`;
                 
-                const nameLabel = document.createElement('div');
-                nameLabel.className = 'sender-name';
-                nameLabel.innerText = msg.sender;
-                wrapper.appendChild(nameLabel);
+                const name = document.createElement('div');
+                name.className = 'sender-name';
+                name.innerText = msg.sender;
+                wrapper.appendChild(name);
 
                 const box = document.createElement('div');
                 box.className = 'message-box';
-                
-                box.onclick = function(e) {
-                    e.stopPropagation();
-                    showReactionPicker(e, msg.id);
-                };
-                
-                box.title = "Click to react / Reply";
+
+                // تمكين الـ Long Press
+                box.addEventListener('mousedown', (e) => startHold(e, msg.id));
+                box.addEventListener('touchstart', (e) => startHold(e, msg.id));
+                box.addEventListener('mouseup', clearHold);
+                box.addEventListener('mouseleave', clearHold);
+                box.addEventListener('touchend', clearHold);
 
                 if (msg.replyTo) {
-                    const originalMsg = messages.find(m => m.id === msg.replyTo);
-                    const replyContext = document.createElement('div');
-                    replyContext.className = 'reply-context-box';
-                    replyContext.innerText = originalMsg ? `↩️ ${originalMsg.sender}: ${originalMsg.text || 'Media File'}` : 'Deleted Message';
-                    box.appendChild(replyContext);
+                    const orig = messages.find(m => m.id === msg.replyTo);
+                    const replyCtx = document.createElement('div');
+                    replyCtx.className = 'reply-context-box';
+                    replyCtx.innerText = orig ? `↩️ ${orig.sender}: ${orig.text || 'Media'}` : 'Deleted Message';
+                    box.appendChild(replyCtx);
                 }
 
                 if (msg.type === "text") {
-                    const textSpan = document.createElement('span');
-                    textSpan.innerText = msg.text;
-                    box.appendChild(textSpan);
+                    const t = document.createElement('span');
+                    t.innerText = msg.text;
+                    box.appendChild(t);
                 } else if (msg.type === "image") {
-                    if(msg.text) {
-                        const textSpan = document.createElement('span');
-                        textSpan.innerText = msg.text + "\n";
-                        box.appendChild(textSpan);
-                    }
                     const img = document.createElement('img');
                     img.src = msg.mediaUrl;
                     img.className = 'message-img';
                     box.appendChild(img);
                 } else if (msg.type === "voice") {
-                    const audioDiv = document.createElement('div');
-                    audioDiv.className = 'audio-player';
-                    audioDiv.innerHTML = `🎵 <span>Voice Note (0:05)</span>`;
-                    box.appendChild(audioDiv);
+                    const playerDiv = document.createElement('div');
+                    playerDiv.className = 'audio-player';
+                    playerDiv.innerHTML = `
+                        <button class="play-play-btn" onclick="playAudioMock(this, ${msg.id})">▶</button>
+                        <div class="audio-wave-line"><div class="audio-progress" id="progress-${msg.id}"></div></div>
+                        <span class="audio-duration" id="duration-${msg.id}">${msg.duration || '0:04'}</span>
+                    `;
+                    box.appendChild(playerDiv);
                 }
 
                 if (msg.reactions && msg.reactions.length > 0) {
-                    const reactionContainer = document.createElement('div');
-                    reactionContainer.className = 'message-reactions';
-                    reactionContainer.innerText = msg.reactions.join(' ');
-                    box.appendChild(reactionContainer);
+                    const rc = document.createElement('div');
+                    rc.className = 'message-reactions';
+                    rc.innerText = msg.reactions.join(' ');
+                    box.appendChild(rc);
                 }
 
                 wrapper.appendChild(box);
                 container.appendChild(wrapper);
             });
-
             container.scrollTop = container.scrollHeight;
+        }
+
+        function startHold(e, msgId) {
+            activeTargetId = msgId;
+            pressTimer = setTimeout(() => {
+                document.getElementById('action-overlay').classList.add('active');
+            }, 500); 
+        }
+
+        function clearHold() { clearTimeout(pressTimer); }
+        function closeOverlay() { document.getElementById('action-overlay').classList.remove('active'); }
+
+        function addReaction(emoji) {
+            const msg = messages.find(m => m.id === activeTargetId);
+            if (msg) {
+                if (!msg.reactions.includes(emoji)) msg.reactions.push(emoji);
+                else msg.reactions = msg.reactions.filter(e => e !== emoji);
+                localStorage.setItem('og_game_chat_data', JSON.stringify(messages));
+                renderMessages();
+            }
+            closeOverlay();
+        }
+
+        function triggerReply() {
+            activeReplyId = activeTargetId;
+            const msg = messages.find(m => m.id === activeReplyId);
+            if(msg) {
+                document.getElementById('reply-preview-text').innerText = `Replying to ${msg.sender}`;
+                document.getElementById('reply-preview').classList.remove('hidden');
+            }
+            closeOverlay();
+        }
+
+        function cancelReply() {
+            activeReplyId = null;
+            document.getElementById('reply-preview').classList.add('hidden');
         }
 
         function sendMessage() {
@@ -544,115 +596,101 @@
             const text = input.value.trim();
             if (!text) return;
 
-            const newMsg = {
+            messages.push({
                 id: Date.now(),
                 sender: currentUser,
                 text: text,
                 type: "text",
                 replyTo: activeReplyId,
                 reactions: []
-            };
-
-            messages.push(newMsg);
+            });
             input.value = "";
             cancelReply();
+            localStorage.setItem('og_game_chat_data', JSON.stringify(messages));
             renderMessages();
         }
 
-        function handleKeyPress(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        }
+        function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
 
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
-            reader.onload = function(e) {
-                const newMsg = {
+            reader.onload = function(evt) {
+                messages.push({
                     id: Date.now(),
                     sender: currentUser,
                     type: "image",
-                    mediaUrl: e.target.result,
-                    text: "Sent an image 🖼️",
+                    mediaUrl: evt.target.result,
                     replyTo: activeReplyId,
                     reactions: []
-                };
-                messages.push(newMsg);
+                });
                 cancelReply();
+                localStorage.setItem('og_game_chat_data', JSON.stringify(messages));
                 renderMessages();
             };
             reader.readAsDataURL(file);
         }
 
-        function toggleVoiceRecord() {
-            const voiceBtn = document.getElementById('voice-btn');
-            if (!isRecording) {
-                isRecording = true;
-                voiceBtn.classList.add('recording');
-                voiceBtn.title = "Recording... Click again to send";
+        function startVoiceRecord() {
+            document.getElementById('input-bar-normal').classList.add('hidden');
+            document.getElementById('input-bar-recording').classList.remove('hidden');
+            recordSeconds = 0;
+            document.getElementById('record-timer').innerText = "00:00";
+            recordInterval = setInterval(() => {
+                recordSeconds++;
+                let mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
+                let secs = String(recordSeconds % 60).padStart(2, '0');
+                document.getElementById('record-timer').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function cancelVoiceRecord() {
+            clearInterval(recordInterval);
+            document.getElementById('input-bar-recording').classList.add('hidden');
+            document.getElementById('input-bar-normal').classList.remove('hidden');
+        }
+
+        function stopAndSendVoice() {
+            clearInterval(recordInterval);
+            let finalDuration = document.getElementById('record-timer').innerText;
+            if(finalDuration === "00:00") finalDuration = "00:02";
+
+            messages.push({
+                id: Date.now(),
+                sender: currentUser,
+                type: "voice",
+                duration: finalDuration,
+                replyTo: activeReplyId,
+                reactions: []
+            });
+
+            cancelReply();
+            localStorage.setItem('og_game_chat_data', JSON.stringify(messages));
+            cancelVoiceRecord();
+            renderMessages();
+        }
+
+        function playAudioMock(btn, msgId) {
+            const progressBar = document.getElementById(`progress-${msgId}`);
+            if (btn.innerText === "▶") {
+                btn.innerText = "⏸";
+                let pct = 0;
+                progressBar.style.width = "0%";
+                const interval = setInterval(() => {
+                    if (btn.innerText === "▶") { clearInterval(interval); return; }
+                    pct += 5;
+                    progressBar.style.width = `${pct}%`;
+                    if (pct >= 100) {
+                        clearInterval(interval);
+                        btn.innerText = "▶";
+                        progressBar.style.width = "0%";
+                    }
+                }, 200);
             } else {
-                isRecording = false;
-                voiceBtn.classList.remove('recording');
-                voiceBtn.title = "Record Audio";
-                
-                const newMsg = {
-                    id: Date.now(),
-                    sender: currentUser,
-                    type: "voice",
-                    mediaUrl: "#",
-                    replyTo: activeReplyId,
-                    reactions: []
-                };
-                messages.push(newMsg);
-                cancelReply();
-                renderMessages();
+                btn.innerText = "▶";
+                progressBar.style.width = "0%";
             }
-        }
-
-        function showReactionPicker(e, msgId) {
-            activeMessageIdForReaction = msgId;
-            const picker = document.getElementById('global-picker');
-            
-            picker.style.top = `${e.clientY - 50}px`;
-            picker.style.left = `${e.clientX - 50}px`;
-            picker.classList.add('active');
-
-            setupReply(msgId);
-        }
-
-        document.addEventListener('click', function() {
-            document.getElementById('global-picker').classList.remove('active');
-        });
-
-        function addReaction(emoji) {
-            const msg = messages.find(m => m.id === activeMessageIdForReaction);
-            if (msg) {
-                if (!msg.reactions.includes(emoji)) {
-                    msg.reactions.push(emoji);
-                } else {
-                    msg.reactions = msg.reactions.filter(e => e !== emoji);
-                }
-                renderMessages();
-            }
-        }
-
-        function setupReply(msgId) {
-            activeReplyId = msgId;
-            const msg = messages.find(m => m.id === msgId);
-            if (msg) {
-                const preview = document.getElementById('reply-preview');
-                const previewText = document.getElementById('reply-preview-text');
-                previewText.innerText = `↩️ Reply to ${msg.sender}: ${msg.text || 'Media'}`;
-                preview.classList.remove('hidden');
-            }
-        }
-
-        function cancelReply() {
-            activeReplyId = null;
-            document.getElementById('reply-preview').classList.add('hidden');
         }
     </script>
 </body>
