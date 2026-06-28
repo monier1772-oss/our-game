@@ -76,28 +76,13 @@
         .chat-title-info { text-align: right; }
         .chat-title-info h3 { font-size: 0.85rem; color: #fff; font-weight: 500; white-space: nowrap; }
         
-        /* ستايل لوحة الـ Status والـ Last seen */
         .chat-title-info .status-text {
             font-size: 0.7rem; color: #7f8c8d; display: flex; align-items: center; justify-content: flex-end; gap: 4px; transition: all 0.2s;
         }
         .chat-title-info .status-text.online-style { color: #2ecc71; }
-        .chat-title-info .status-text.typing-style { color: #00f2fe; font-weight: bold; }
 
         .dot { width: 7px; height: 7px; background: #7f8c8d; border-radius: 50%; transition: all 0.2s; }
         .dot.active-dot { background: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
-
-        .typing-dots { display: inline-flex; gap: 2px; align-items: center; margin-left: 2px; margin-bottom: -1px; }
-        .typing-dots span {
-            width: 3px; height: 3px; background-color: #00f2fe; border-radius: 50%;
-            animation: bounce-dots 1.4s infinite ease-in-out both;
-        }
-        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes bounce-dots {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
 
         .header-avatar {
             width: 32px; height: 32px; background: #312e4f; border-radius: 50%;
@@ -117,14 +102,60 @@
         @keyframes pulse-glow { 0%, 100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.15); opacity: 1; color: #5d54a4; } }
         @keyframes text-blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
+        /* --- ستايل حركي جديد لفقاعة الـ Typing بأسفل الشات --- */
+        .typing-bubble-wrapper {
+            align-self: flex-end;
+            display: flex;
+            flex-direction: column;
+            max-width: 75%;
+            animation: fadeIn 0.2s ease;
+        }
+        .typing-box {
+            background: #0c3e3f;
+            padding: 12px 18px;
+            border-radius: 16px;
+            border-bottom-right-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bottom-typing-dots { display: flex; gap: 4px; align-items: center; }
+        .bottom-typing-dots span {
+            width: 5px; height: 5px; background-color: #00f2fe; border-radius: 50%;
+            animation: bounce-dots 1.4s infinite ease-in-out both;
+        }
+        .bottom-typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .bottom-typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce-dots {
+            0%, 80%, 100% { transform: scale(0.2); opacity: 0.4; }
+            40% { transform: scale(1.2); opacity: 1; }
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
         /* Messages */
-        .message-wrapper { display: flex; flex-direction: column; max-width: 75%; position: relative; z-index: 10; }
+        .message-wrapper { display: flex; flex-direction: column; max-width: 75%; position: relative; z-index: 10; margin-bottom: 5px; }
         .message-wrapper.sent { align-self: flex-start; }
         .message-wrapper.received { align-self: flex-end; }
         .sender-name { font-size: 0.75rem; color: #3e3b54; margin-bottom: 4px; padding: 0 4px; }
-        .message-box { padding: 10px 14px; border-radius: 16px; font-size: 0.9rem; line-height: 1.4; cursor: pointer; }
+        
+        .message-box { 
+            padding: 10px 14px; border-radius: 16px; font-size: 0.9rem; line-height: 1.4; cursor: pointer;
+            display: flex; flex-direction: column; position: relative;
+        }
         .sent .message-box { background: #19162a; color: #fff; border-bottom-left-radius: 4px; border: 1px solid #231f3a;}
         .received .message-box { background: #0c3e3f; color: #fff; border-bottom-right-radius: 4px; }
+
+        /* ستايل طابع الوقت تحت المسدج زي الواتساب */
+        .message-time {
+            font-size: 0.65rem;
+            color: #524e75;
+            align-self: flex-end;
+            margin-top: 4px;
+            margin-bottom: -2px;
+            user-select: none;
+        }
+        .received .message-time { color: #518789; }
 
         .reply-context-box { background: rgba(0, 0, 0, 0.2); border-left: 2px solid #5d54a4; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; color: #7b74a8; margin-bottom: 6px; }
         .message-img { max-width: 100%; border-radius: 10px; margin-top: 4px; display: block; }
@@ -136,7 +167,7 @@
         .audio-progress { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: #5d54a4; }
         .audio-duration { font-size: 0.7rem; color: #4b4865; }
 
-        .message-reactions { display: flex; gap: 2px; position: absolute; bottom: -10px; right: 8px; background: #0b0914; padding: 1px 5px; border-radius: 8px; border: 1px solid #1c192e; font-size: 0.65rem; }
+        .message-reactions { display: flex; gap: 2px; position: absolute; bottom: -10px; right: 8px; background: #0b0914; padding: 1px 5px; border-radius: 8px; border: 1px solid #1c192e; font-size: 0.65rem; z-index: 20; }
         #reply-preview { display: flex; align-items: center; justify-content: space-between; background: #0b0914; padding: 6px 20px; border-top: 1px solid #151322; font-size: 0.8rem; color: #615c84; }
 
         /* Input Controls */
@@ -160,9 +191,10 @@
             opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
         }
         .action-overlay.active { opacity: 1; pointer-events: auto; }
-        .overlay-card { background: #11101d; border: 1px solid #1a182e; border-radius: 20px; padding: 20px; width: 260px; text-align: center; }
+        .overlay-card { background: #11101d; border: 1px solid #1a182e; border-radius: 20px; padding: 20px; width: 280px; text-align: center; }
         .reaction-row { display: flex; justify-content: space-around; margin-bottom: 15px; }
-        .reaction-row span { font-size: 1.6rem; cursor: pointer; }
+        .reaction-row span { font-size: 1.6rem; cursor: pointer; transition: transform 0.1s; }
+        .reaction-row span:hover { transform: scale(1.2); }
         .overlay-btn { width: 100%; background: #161525; border: 1px solid #23213a; color: #fff; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 0.9rem; }
     </style>
 
@@ -193,7 +225,6 @@
                 <button onclick="goBack()" class="back-btn">Exit</button>
                 <div class="chat-title-info">
                     <h3 id="target-player-title">Chat with Player 2</h3>
-                    <!-- لوحة كشف الحالات المدمجة ذكياً مع الـ Last seen -->
                     <div class="status-text" id="header-status-indicator">Offline <span class="dot" id="status-dot"></span></div>
                 </div>
                 <div class="header-avatar" id="target-avatar-icon">🕹️</div>
@@ -205,6 +236,7 @@
                 <span class="loading-icon">👾</span>
                 <span class="loading-text">!Start the conversation</span>
             </div>
+            <!-- فقاعة الكتابة هتنزل هنا ديناميكياً بأسفل الرسائل -->
         </div>
 
         <div id="reply-preview" class="hidden">
@@ -236,10 +268,12 @@
         </div>
     </div>
 
+    <!-- القائمة المنبثقة بعد إضافة الـ Dislike 👎 -->
     <div id="action-overlay" class="action-overlay" onclick="closeOverlay()">
         <div class="overlay-card" onclick="event.stopPropagation()">
             <div class="reaction-row">
                 <span onclick="addReaction('👍')">👍</span>
+                <span onclick="addReaction('👎')">👎</span>
                 <span onclick="addReaction('😂')">😂</span>
                 <span onclick="addReaction('❤️')">❤️</span>
                 <span onclick="addReaction('😢')">😢</span>
@@ -258,7 +292,7 @@
         const messagesRef = database.ref('global_game_messages');
         const typingRef = database.ref('typing_status');
         const presenceRef = database.ref('presence_status');
-        const lastSeenRef = database.ref('last_seen_status'); // مرجع جديد لتخزين طابع الوقت
+        const lastSeenRef = database.ref('last_seen_status');
 
         let messages = [];
         let currentUser = "Player 1";
@@ -266,8 +300,11 @@
         let activeReplyId = null;
         let recordInterval, recordSeconds = 0, pressTimer;
         let typingTimeout;
+        
+        // لوجيك تسجيل الصوت الحقيقي
+        let mediaRecorder;
+        let audioChunks = [];
 
-        // دالة موحدة لمزامنة الحالات (Online / Typing / Last Seen) لايف وبدقة عالية
         function syncUserStatus() {
             const targetPlayer = (currentUser === "Player 1") ? "Player 2" : "Player 1";
             const indicatorEl = document.getElementById('header-status-indicator');
@@ -278,18 +315,13 @@
                 const typing = data.typing_status || {};
                 const lastSeenData = data.last_seen_status || {};
                 
-                // 1. لو بيكتب حالياً وهو متصل
-                if (typing[targetPlayer] === true && presence[targetPlayer] === true) {
-                    indicatorEl.innerHTML = 'typing<div class="typing-dots"><span></span><span></span><span></span></div>';
-                    indicatorEl.className = "status-text typing-style";
-                } 
-                // 2. لو أونلاين فقط
-                else if (presence[targetPlayer] === true) {
+                // التحكم في ظهور الـ Typing تحت في الشات
+                handleBottomTypingUI(typing[targetPlayer] === true && presence[targetPlayer] === true, targetPlayer);
+
+                if (presence[targetPlayer] === true) {
                     indicatorEl.innerHTML = 'Online <span class="dot active-dot" id="status-dot"></span>';
                     indicatorEl.className = "status-text online-style";
-                } 
-                // 3. لو مش متصل، اعرض الـ Last Seen الحقيقي والمنسق
-                else {
+                } else {
                     const rawTime = lastSeenData[targetPlayer];
                     if (rawTime) {
                         indicatorEl.innerHTML = `Last seen ${formatLastSeen(rawTime)} <span class="dot" id="status-dot"></span>`;
@@ -301,15 +333,51 @@
             });
         }
 
-        // دالة تحويل طابع الوقت الرقمي (Timestamp) إلى نص مفهوم (اليوم الساعة كذا)
+        // إظهار أو إخفاء أنيميشن الـ Typing تحت مكان المسدجات
+        function handleBottomTypingUI(isTyping, targetPlayer) {
+            const container = document.getElementById('messages-container');
+            let typingBubble = document.getElementById('bottom-typing-bubble');
+            
+            if (isTyping) {
+                if (!typingBubble) {
+                    typingBubble = document.createElement('div');
+                    typingBubble.id = 'bottom-typing-bubble';
+                    typingBubble.className = 'typing-bubble-wrapper';
+                    typingBubble.innerHTML = `
+                        <div class="sender-name">${targetPlayer}</div>
+                        <div class="typing-box">
+                            <div class="bottom-typing-dots"><span></span><span></span><span></span></div>
+                        </div>
+                    `;
+                    container.appendChild(typingBubble);
+                    container.scrollTop = container.scrollHeight;
+                }
+            } else {
+                if (typingBubble) {
+                    typingBubble.remove();
+                }
+            }
+        }
+
         function formatLastSeen(timestamp) {
             const date = new Date(timestamp);
             let hours = date.getHours();
             let minutes = String(date.getMinutes()).padStart(2, '0');
             const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12;
-            hours = hours ? hours : 12; // الساعة 0 تتحول لـ 12
+            hours = hours ? hours : 12;
             return `today at ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+        }
+
+        // دالة استخراج وقت إرسال الرسالة الحالية بتنسيق الواتساب
+        function formatMessageTime(timestamp) {
+            const date = new Date(timestamp);
+            let hours = date.getHours();
+            let minutes = String(date.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
         }
 
         messagesRef.on('value', (snapshot) => {
@@ -343,25 +411,18 @@
         function setupPresence() {
             const myPresenceRef = presenceRef.child(currentUser);
             const myLastSeenRef = lastSeenRef.child(currentUser);
-            
             database.ref('.info/connected').on('value', (snapshot) => {
                 if (snapshot.val() === false) return;
-                
-                // في حالة قطع الاتصال المفاجئ، سجل الـ Online كـ False والوقت الحالي كـ Last Seen
                 myPresenceRef.onDisconnect().set(false);
                 myLastSeenRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
-                
-                // عند الدخول الفعلي اجعل حالتك متصل
                 myPresenceRef.set(true);
             });
         }
 
         function goBack() {
-            // تسجيل وقت الخروج الفوري عند الضغط على زر Exit يدوياً
             presenceRef.child(currentUser).set(false);
             lastSeenRef.child(currentUser).set(firebase.database.ServerValue.TIMESTAMP);
             typingRef.child(currentUser).set(false);
-            
             document.getElementById('chat-screen').classList.add('hidden');
             document.getElementById('welcome-screen').classList.remove('hidden');
         }
@@ -376,6 +437,10 @@
 
         function renderMessages() {
             const container = document.getElementById('messages-container');
+            
+            // احفظ الـ typing bubble لو كانت موجودة قبل الحذف
+            const typingBubble = document.getElementById('bottom-typing-bubble');
+
             const existingMessages = container.querySelectorAll('.message-wrapper');
             existingMessages.forEach(el => el.remove());
 
@@ -423,12 +488,18 @@
                     const playerDiv = document.createElement('div');
                     playerDiv.className = 'audio-player';
                     playerDiv.innerHTML = `
-                        <button class="play-play-btn" onclick="playAudioMock(this, '${msg.id}')">▶</button>
-                        <div class="audio-wave-line"><div class="audio-progress" id="progress-${msg.id}"></div></div>
-                        <span class="audio-duration" id="duration-${msg.id}">${msg.duration || '0:04'}</span>
+                        <button class="play-play-btn" onclick="playAudioReal(this, '${msg.mediaUrl}')">▶</button>
+                        <div class="audio-wave-line"><div class="audio-progress"></div></div>
+                        <span class="audio-duration">${msg.duration || '0:02'}</span>
                     `;
                     box.appendChild(playerDiv);
                 }
+
+                // إضافة التايم ستامب لأسفل كل رسالة
+                const timeEl = document.createElement('div');
+                timeEl.className = 'message-time';
+                timeEl.innerText = formatMessageTime(msg.timestamp || Date.now());
+                box.appendChild(timeEl);
 
                 if (msg.reactions) {
                     const reactionList = Object.values(msg.reactions);
@@ -443,6 +514,10 @@
                 wrapper.appendChild(box);
                 container.appendChild(wrapper);
             });
+            
+            // أعد تثبيت فقاعة الكتابة تحت الرسايل لو كانت ظاهرة
+            if (typingBubble) container.appendChild(typingBubble);
+
             container.scrollTop = container.scrollHeight;
         }
 
@@ -513,61 +588,112 @@
             reader.readAsDataURL(file);
         }
 
+        // --- نظام تسجيل الصوت الحقيقي الشغال 100% ---
         function startVoiceRecord() {
-            document.getElementById('input-bar-normal').classList.add('hidden');
-            document.getElementById('input-bar-recording').classList.remove('hidden');
-            recordSeconds = 0;
-            document.getElementById('record-timer').innerText = "00:00";
-            recordInterval = setInterval(() => {
-                recordSeconds++;
-                let mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
-                let secs = String(recordSeconds % 60).padStart(2, '0');
-                document.getElementById('record-timer').innerText = `${mins}:${secs}`;
-            }, 1000);
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = e => {
+                    audioChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        let finalDuration = document.getElementById('record-timer').innerText;
+                        if(finalDuration === "00:00") finalDuration = "00:02";
+
+                        // رفع الصوت الفعلي كـ Base64 لايف للـ Firebase
+                        messagesRef.push({
+                            sender: currentUser,
+                            type: "voice",
+                            mediaUrl: evt.target.result,
+                            duration: finalDuration,
+                            replyTo: activeReplyId || null,
+                            timestamp: Date.now()
+                        });
+                    };
+                    reader.readAsDataURL(audioBlob);
+                    
+                    // إغلاق المايك بعد انتهاء التسجيل لتوفير البطارية والأمان
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+
+                document.getElementById('input-bar-normal').classList.add('hidden');
+                document.getElementById('input-bar-recording').classList.remove('hidden');
+                recordSeconds = 0;
+                document.getElementById('record-timer').innerText = "00:00";
+                recordInterval = setInterval(() => {
+                    recordSeconds++;
+                    let mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
+                    let secs = String(recordSeconds % 60).padStart(2, '0');
+                    document.getElementById('record-timer').innerText = `${mins}:${secs}`;
+                }, 1000);
+
+            }).catch(err => {
+                alert("Please allow microphone access to record voice notes!");
+            });
         }
 
         function cancelVoiceRecord() {
             clearInterval(recordInterval);
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
+                mediaRecorder.onstop = null; // الغاء الإرسال
+            }
             document.getElementById('input-bar-recording').classList.add('hidden');
             document.getElementById('input-bar-normal').classList.remove('hidden');
         }
 
         function stopAndSendVoice() {
             clearInterval(recordInterval);
-            let finalDuration = document.getElementById('record-timer').innerText;
-            if(finalDuration === "00:00") finalDuration = "00:02";
-
-            messagesRef.push({
-                sender: currentUser,
-                type: "voice",
-                duration: finalDuration,
-                replyTo: activeReplyId || null,
-                timestamp: Date.now()
-            });
-
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop(); // ده هيشغل دالة الـ onstop اللي فوق وبتبعت تلقائي
+            }
             cancelReply();
-            cancelVoiceRecord();
+            document.getElementById('input-bar-recording').classList.add('hidden');
+            document.getElementById('input-bar-normal').classList.remove('hidden');
         }
 
-        function playAudioMock(btn, msgId) {
-            const progressBar = document.getElementById(`progress-${msgId}`);
+        // دالة تشغيل الصوت الحقيقي المسموع عبر الأجهزة
+        let currentAudio = null;
+        let currentBtn = null;
+
+        function playAudioReal(btn, audioUrl) {
+            if (currentAudio && currentBtn && currentBtn !== btn) {
+                currentAudio.pause();
+                currentBtn.innerText = "▶";
+            }
+
             if (btn.innerText === "▶") {
+                currentAudio = new Audio(audioUrl);
+                currentBtn = btn;
                 btn.innerText = "⏸";
-                let pct = 0;
-                progressBar.style.width = "0%";
-                const interval = setInterval(() => {
-                    if (btn.innerText === "▶") { clearInterval(interval); return; }
-                    pct += 5;
-                    progressBar.style.width = `${pct}%`;
-                    if (pct >= 100) {
-                        clearInterval(interval);
-                        btn.innerText = "▶";
-                        progressBar.style.width = "0%";
+
+                const progressBar = btn.parentElement.querySelector('.audio-progress');
+                
+                currentAudio.ontimeupdate = () => {
+                    if(currentAudio.duration) {
+                        const pct = (currentAudio.currentTime / currentAudio.duration) * 100;
+                        progressBar.style.width = `${pct}%`;
                     }
-                }, 200);
+                };
+
+                currentAudio.onended = () => {
+                    btn.innerText = "▶";
+                    progressBar.style.width = "0%";
+                };
+
+                currentAudio.play();
             } else {
+                if (currentAudio) {
+                    currentAudio.pause();
+                }
                 btn.innerText = "▶";
-                progressBar.style.width = "0%";
             }
         }
     </script>
