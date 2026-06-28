@@ -75,8 +75,31 @@
         .header-right { display: flex; align-items: center; gap: 8px; }
         .chat-title-info { text-align: right; }
         .chat-title-info h3 { font-size: 0.85rem; color: #fff; font-weight: 500; white-space: nowrap; }
-        .chat-title-info span { font-size: 0.7rem; color: #2ecc71; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
-        .dot { width: 7px; height: 7px; background: #2ecc71; border-radius: 50%; box-shadow: 0 0 8px #2ecc71; }
+        
+        /* ستايل لوحة الحالة المرن */
+        .chat-title-info .status-text {
+            font-size: 0.7rem; color: #95a5a6; display: flex; align-items: center; justify-content: flex-end; gap: 4px; transition: all 0.2s;
+        }
+        .chat-title-info .status-text.online-style { color: #2ecc71; }
+        .chat-title-info .status-text.typing-style { color: #00f2fe; font-weight: bold; }
+
+        .dot { width: 7px; height: 7px; background: #95a5a6; border-radius: 50%; transition: all 0.2s; }
+        .dot.active-dot { background: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
+
+        /* أنيميشن الـ Three Dots الجبار للـ Typing */
+        .typing-dots { display: inline-flex; gap: 2px; align-items: center; margin-left: 2px; }
+        .typing-dots span {
+            width: 3px; height: 3px; background-color: #00f2fe; border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
         .header-avatar {
             width: 32px; height: 32px; background: #312e4f; border-radius: 50%;
             display: flex; align-items: center; justify-content: center; font-size: 0.95rem; border: 1px solid #443f6d;
@@ -171,7 +194,8 @@
                 <button onclick="goBack()" class="back-btn">Exit</button>
                 <div class="chat-title-info">
                     <h3 id="target-player-title">Chat with Player 2</h3>
-                    <span>Online <span class="dot"></span></span>
+                    <!-- لوحة كشف الحالات المدمجة والذكية -->
+                    <div class="status-text" id="header-status-indicator">Offline <span class="dot" id="status-dot"></span></div>
                 </div>
                 <div class="header-avatar" id="target-avatar-icon">🕹️</div>
             </div>
@@ -191,7 +215,7 @@
 
         <div class="input-outer-container">
             <div class="chat-input-area" id="input-bar-normal">
-                <input type="text" id="msg-input" placeholder="...Type a message" dir="rtl" onkeypress="handleKeyPress(event)">
+                <input type="text" id="msg-input" placeholder="...Type a message" dir="rtl" onkeypress="handleKeyPress(event)" oninput="handleTypingStatus()">
                 <div class="input-actions-left">
                     <label for="image-input" class="icon-btn" title="Send Image">
                         🖼️
@@ -226,7 +250,6 @@
     </div>
 
     <script>
-        // الكود مربوط وجاهز بمشروعك الحقيقي علطول يا منير!
         const firebaseConfig = {
             databaseURL: "https://ourgamechat-msm-default-rtdb.firebaseio.com"
         };
@@ -234,13 +257,18 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         const messagesRef = database.ref('global_game_messages');
+        const typingRef = database.ref('typing_status');
+        const presenceRef = database.ref('presence_status'); // مرجع ذكي لمتابعة الأونلاين الحقيقي
 
         let messages = [];
         let currentUser = "Player 1";
         let activeTargetId = null;
         let activeReplyId = null;
         let recordInterval, recordSeconds = 0, pressTimer;
+        let typingTimeout;
+        let isUserOnline = false;
 
+        // الاستماع الفوري للرسائل الجديدة
         messagesRef.on('value', (snapshot) => {
             const data = snapshot.val();
             messages = [];
@@ -251,6 +279,37 @@
             }
             renderMessages();
         });
+
+        // مراقبة دمج حالات الـ Online والـ Typing معاً بدقة تامة
+        function syncUserStatus() {
+            const targetPlayer = (currentUser === "Player 1") ? "Player 2" : "Player 1";
+            
+            // قراءة مشتركة لحالة الاتصال والكتابة للطرف الآخر
+            database.ref().on('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                const presence = data.presence_status || {};
+                const typing = data.typing_status || {};
+                
+                const indicatorEl = document.getElementById('header-status-indicator');
+                const dotEl = document.getElementById('status-dot');
+                
+                // 1. الأولوية الأولى: لو بيكتب الآن وجهازه متصل اصلاً
+                if (typing[targetPlayer] === true && presence[targetPlayer] === true) {
+                    indicatorEl.innerHTML = 'typing<div class="typing-dots"><span></span><span></span><span></span></div>';
+                    indicatorEl.className = "status-text typing-style";
+                } 
+                // 2. الأولوية الثانية: لو متصل وفاتح الأبلكيشن بس مش بيكتب حالياً
+                else if (presence[targetPlayer] === true) {
+                    indicatorEl.innerHTML = 'Online <span class="dot active-dot" id="status-dot"></span>';
+                    indicatorEl.className = "status-text online-style";
+                } 
+                // 3. الأولوية الثالثة: لو قفل المتصفح أو خرج تماماً
+                else {
+                    indicatorEl.innerHTML = 'Offline <span class="dot" id="status-dot"></span>';
+                    indicatorEl.className = "status-text";
+                }
+            });
+        }
 
         function selectCharacter(player) {
             currentUser = player;
@@ -263,12 +322,43 @@
 
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('chat-screen').classList.remove('hidden');
+            
+            // تشغيل نظام الـ Presence الحقيقي لتأكيد الـ Online عند الدخول للشات
+            setupPresence();
+            syncUserStatus();
             renderMessages();
         }
 
+        // نظام كشف الاتصال الفوري عند غلق التاب أو الخروج المفاجئ
+        function setupPresence() {
+            const myPresenceRef = presenceRef.child(currentUser);
+            
+            // عند الاتصال بالسيرفر، اجعل حالتي True، وعند قطع الاتصال (Disconnect) امسحها واجعلها ديد تلقائياً
+            database.ref('.info/connected').on('value', (snapshot) => {
+                if (snapshot.val() === false) return;
+                
+                myPresenceRef.onDisconnect().set(false).then(() => {
+                    myPresenceRef.set(true);
+                });
+            });
+        }
+
         function goBack() {
+            // تصفير البيانات عند الضغط على Exit يدوياً
+            presenceRef.child(currentUser).set(false);
+            typingRef.child(currentUser).set(false);
+            
             document.getElementById('chat-screen').classList.add('hidden');
             document.getElementById('welcome-screen').classList.remove('hidden');
+        }
+
+        function handleTypingStatus() {
+            typingRef.child(currentUser).set(true);
+
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                typingRef.child(currentUser).set(false);
+            }, 1800); 
         }
 
         function renderMessages() {
@@ -377,6 +467,8 @@
             const input = document.getElementById('msg-input');
             const text = input.value.trim();
             if (!text) return;
+
+            typingRef.child(currentUser).set(false);
 
             messagesRef.push({
                 sender: currentUser,
