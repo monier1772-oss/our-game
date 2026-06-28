@@ -24,7 +24,6 @@
             align-items: center;
         }
 
-        /* جعل الواجهات تمتد على كامل الشاشة مثل الاسكرينات تماماً */
         .screen {
             width: 100vw;
             height: 100vh;
@@ -36,7 +35,7 @@
 
         .hidden { display: none !important; }
 
-        /* --- واجهة الاختيار مطابقة لـ image_e02ced.png --- */
+        /* --- Welcome Screen --- */
         #welcome-screen {
             justify-content: center;
             align-items: center;
@@ -103,7 +102,7 @@
             color: #fff;
         }
 
-        /* --- واجهة الشات مطابقة لـ image_e02c98.png --- */
+        /* --- Chat Screen --- */
         .chat-header {
             display: flex;
             align-items: center;
@@ -176,7 +175,7 @@
             position: relative;
         }
 
-        /* --- أنيميشن الـ Loading لـ Start the conversation --- */
+        /* Loading / Placeholder Animation */
         .start-conversation-loading {
             position: absolute;
             top: 50%;
@@ -212,11 +211,13 @@
             50% { opacity: 1; }
         }
 
-        /* ستيلات الرسايل المحسنة */
+        /* Message Elements */
         .message-wrapper {
             display: flex;
             flex-direction: column;
             max-width: 70%;
+            position: relative;
+            z-index: 10;
         }
         .message-wrapper.sent { align-self: flex-start; }
         .message-wrapper.received { align-self: flex-end; }
@@ -251,7 +252,7 @@
 
         .message-img { max-width: 100%; border-radius: 10px; margin-top: 4px; display: block; }
 
-        /* الفويس بلاير */
+        /* Audio Controls */
         .audio-player { display: flex; align-items: center; gap: 10px; min-width: 160px; padding: 2px 0; }
         .play-play-btn {
             background: #5d54a4; border: none; width: 28px; height: 28px; border-radius: 50%;
@@ -266,16 +267,16 @@
             background: #0b0914; padding: 1px 5px; border-radius: 8px; border: 1px solid #1c192e; font-size: 0.7rem;
         }
 
-        /* شريط الرد المقتبس */
         #reply-preview {
             display: flex; align-items: center; justify-content: space-between;
             background: #0b0914; padding: 8px 30px; border-top: 1px solid #151322; font-size: 0.85rem; color: #615c84;
         }
 
-        /* --- شريط الإدخال الفخم مطابق لأسفل image_e02c98.png --- */
+        /* Input Controls */
         .input-outer-container {
             padding: 0 20px 20px 20px;
             background: #0b0914;
+            width: 100%;
         }
 
         .chat-input-area {
@@ -321,14 +322,13 @@
         .send-main-btn { color: #5d54a4; }
         .send-main-btn:hover { color: #897cb5; }
 
-        /* وضع التسجيل الصوتي داخل الشريط ممتد العرض */
         .recording-status {
             display: flex; align-items: center; gap: 10px; color: #ff7675; font-size: 0.9rem; flex: 1; justify-content: flex-end;
         }
         .wave-dot { width: 8px; height: 8px; background: #ff7675; border-radius: 50%; animation: pulse 0.8s infinite; }
         @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.5; } }
 
-        /* قفل الخيارات المنبثق عند الضغط المطول */
+        /* Action Picker Modals */
         .action-overlay {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 9, 20, 0.85);
             display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200;
@@ -345,7 +345,7 @@
 </head>
 <body>
 
-    <!-- Welcome Screen (image_e02ced.png Style) -->
+    <!-- Welcome Screen -->
     <div id="welcome-screen" class="screen">
         <div class="login-card">
             <span class="main-icon">🕹️</span>
@@ -353,12 +353,12 @@
             <p class="subtitle">Choose your character</p>
             
             <div class="character-container">
-                <button class="char-btn" onclick="selectCharacter('Player 1', '🎮')">
+                <button class="char-btn" onclick="selectCharacter('Player 1')">
                     <span>Player 1</span>
                     <span>🎮</span>
                 </button>
                 
-                <button class="char-btn" onclick="selectCharacter('Player 2', '🕹️')">
+                <button class="char-btn" onclick="selectCharacter('Player 2')">
                     <span>Player 2</span>
                     <span>🕹️</span>
                 </button>
@@ -366,7 +366,7 @@
         </div>
     </div>
 
-    <!-- Chat Screen (image_e02c98.png Style) -->
+    <!-- Chat Screen -->
     <div id="chat-screen" class="screen hidden">
         <div class="chat-header">
             <div class="player-indicator-left" id="current-player-label">Player 1</div>
@@ -382,22 +382,21 @@
         </div>
 
         <div class="messages-container" id="messages-container">
-            <!-- Loading / Start Conversation Element -->
-            <div id="loading-conversation" class="start-conversation-loading">
+            <!-- Loading Placeholder / State -->
+            <div id="loading-conversation" class="start-conversation-loading hidden">
                 <span class="loading-icon">👾</span>
                 <span class="loading-text">!Start the conversation</span>
             </div>
         </div>
 
-        <!-- Pending Reply Context -->
+        <!-- Pending Reply Area -->
         <div id="reply-preview" class="hidden">
             <span id="reply-preview-text">Replying...</span>
             <span style="cursor:pointer; color:#ff7675;" onclick="cancelReply()">✕</span>
         </div>
 
-        <!-- Luxury Full Width Input Container -->
+        <!-- Input Frame Area -->
         <div class="input-outer-container">
-            <!-- Normal Mode -->
             <div class="chat-input-area" id="input-bar-normal">
                 <input type="text" id="msg-input" placeholder="...Type a message" dir="rtl" onkeypress="handleKeyPress(event)">
                 
@@ -411,7 +410,6 @@
                 </div>
             </div>
 
-            <!-- Recording Mode Inside Same Frame -->
             <div class="chat-input-area hidden" id="input-bar-recording">
                 <div class="recording-status">
                     <span class="wave-dot"></span>
@@ -423,7 +421,7 @@
         </div>
     </div>
 
-    <!-- Long Press Action Pop-up Modal -->
+    <!-- Actions Pop-up Modal (Long Press Effect) -->
     <div id="action-overlay" class="action-overlay" onclick="closeOverlay()">
         <div class="overlay-card" onclick="event.stopPropagation()">
             <div class="reaction-row">
@@ -437,8 +435,9 @@
     </div>
 
     <script>
-        // تحميل البيانات من الـ localStorage لتجنب المسح عند الريفرش
-        let messages = JSON.parse(localStorage.getItem('og_game_chat_data')) || [];
+        // توحيد مفتاح الـ localStorage لضمان عدم ضياع الداتا أبداً
+        const STORAGE_KEY = 'og_final_game_chat_storage';
+        let messages = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
         let currentUser = "Player 1";
         let activeTargetId = null;
         let activeReplyId = null;
@@ -448,13 +447,13 @@
         let pressTimer;
 
         window.onload = function() {
+            // تحميل أولي للتأكد من وجود رسائل قديمة محفوظة
             renderMessages();
         };
 
-        function selectCharacter(player, emoji) {
+        function selectCharacter(player) {
             currentUser = player;
             
-            // تخصيص بيانات الهيدر بناءً على اختيارك لمطابقة الصورة تماماً
             document.getElementById('current-player-label').innerText = currentUser;
             const targetPlayer = (currentUser === "Player 1") ? "Player 2" : "Player 1";
             const targetEmoji = (currentUser === "Player 1") ? "🕹️" : "🎮";
@@ -464,6 +463,8 @@
 
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('chat-screen').classList.remove('hidden');
+            
+            // قراءة ورسم فوري لكافة الرسايل القديمة بمجرد الدخول
             renderMessages();
         }
 
@@ -475,25 +476,20 @@
         function renderMessages() {
             const container = document.getElementById('messages-container');
             
-            // إخفاء أو إظهار الـ Loading Animation الخاص بجملة !Start the conversation
+            // تنظيف كل الحاويات والرسائل القديمة لمنع التكرار
+            const existingMessages = container.querySelectorAll('.message-wrapper');
+            existingMessages.forEach(el => el.remove());
+
             const loadingEl = document.getElementById('loading-conversation');
+
+            // التحكم في ظهور شاشة الـ Loading في حالة الشات فارغ تماماً
             if (messages.length === 0) {
-                if(!loadingEl) {
-                    container.innerHTML = `
-                        <div id="loading-conversation" class="start-conversation-loading">
-                            <span class="loading-icon">👾</span>
-                            <span class="loading-text">!Start the conversation</span>
-                        </div>`;
-                } else {
-                    loadingEl.classList.remove('hidden');
-                }
+                loadingEl.classList.remove('hidden');
             } else {
-                if(loadingEl) loadingEl.classList.add('hidden');
-                // مسح الرسايل القديمة لإعادة بنائها
-                const items = container.querySelectorAll('.message-wrapper');
-                items.forEach(el => el.remove());
+                loadingEl.classList.add('hidden');
             }
 
+            // بناء الرسايل المخزنة وعرضها فوراً
             messages.forEach(msg => {
                 const isMine = (msg.sender === currentUser);
                 const wrapper = document.createElement('div');
@@ -507,7 +503,7 @@
                 const box = document.createElement('div');
                 box.className = 'message-box';
 
-                // تمكين الـ Long Press
+                // تشغيل الـ Long Press
                 box.addEventListener('mousedown', (e) => startHold(e, msg.id));
                 box.addEventListener('touchstart', (e) => startHold(e, msg.id));
                 box.addEventListener('mouseup', clearHold);
@@ -518,7 +514,7 @@
                     const orig = messages.find(m => m.id === msg.replyTo);
                     const replyCtx = document.createElement('div');
                     replyCtx.className = 'reply-context-box';
-                    replyCtx.innerText = orig ? `↩️ ${orig.sender}: ${orig.text || 'Media'}` : 'Deleted Message';
+                    replyCtx.innerText = orig ? `↩️ ${orig.sender}: ${orig.text || 'Media File'}` : 'Deleted Message';
                     box.appendChild(replyCtx);
                 }
 
@@ -552,6 +548,7 @@
                 wrapper.appendChild(box);
                 container.appendChild(wrapper);
             });
+            
             container.scrollTop = container.scrollHeight;
         }
 
@@ -570,7 +567,7 @@
             if (msg) {
                 if (!msg.reactions.includes(emoji)) msg.reactions.push(emoji);
                 else msg.reactions = msg.reactions.filter(e => e !== emoji);
-                localStorage.setItem('og_game_chat_data', JSON.stringify(messages));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
                 renderMessages();
             }
             closeOverlay();
@@ -606,7 +603,7 @@
             });
             input.value = "";
             cancelReply();
-            localStorage.setItem('og_game_chat_data', JSON.stringify(messages));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
             renderMessages();
         }
 
@@ -626,7 +623,7 @@
                     reactions: []
                 });
                 cancelReply();
-                localStorage.setItem('og_game_chat_data', JSON.stringify(messages));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
                 renderMessages();
             };
             reader.readAsDataURL(file);
@@ -666,7 +663,7 @@
             });
 
             cancelReply();
-            localStorage.setItem('og_game_chat_data', JSON.stringify(messages));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
             cancelVoiceRecord();
             renderMessages();
         }
