@@ -76,16 +76,16 @@
         .chat-title-info { text-align: right; }
         .chat-title-info h3 { font-size: 0.85rem; color: #fff; font-weight: 500; white-space: nowrap; }
         
+        /* ستايل لوحة الـ Status والـ Last seen */
         .chat-title-info .status-text {
-            font-size: 0.7rem; color: #95a5a6; display: flex; align-items: center; justify-content: flex-end; gap: 4px; transition: all 0.2s;
+            font-size: 0.7rem; color: #7f8c8d; display: flex; align-items: center; justify-content: flex-end; gap: 4px; transition: all 0.2s;
         }
         .chat-title-info .status-text.online-style { color: #2ecc71; }
         .chat-title-info .status-text.typing-style { color: #00f2fe; font-weight: bold; }
 
-        .dot { width: 7px; height: 7px; background: #95a5a6; border-radius: 50%; transition: all 0.2s; }
+        .dot { width: 7px; height: 7px; background: #7f8c8d; border-radius: 50%; transition: all 0.2s; }
         .dot.active-dot { background: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
 
-        /* الأنيميشن المحدث للـ Three Dots */
         .typing-dots { display: inline-flex; gap: 2px; align-items: center; margin-left: 2px; margin-bottom: -1px; }
         .typing-dots span {
             width: 3px; height: 3px; background-color: #00f2fe; border-radius: 50%;
@@ -193,6 +193,7 @@
                 <button onclick="goBack()" class="back-btn">Exit</button>
                 <div class="chat-title-info">
                     <h3 id="target-player-title">Chat with Player 2</h3>
+                    <!-- لوحة كشف الحالات المدمجة ذكياً مع الـ Last seen -->
                     <div class="status-text" id="header-status-indicator">Offline <span class="dot" id="status-dot"></span></div>
                 </div>
                 <div class="header-avatar" id="target-avatar-icon">🕹️</div>
@@ -257,6 +258,7 @@
         const messagesRef = database.ref('global_game_messages');
         const typingRef = database.ref('typing_status');
         const presenceRef = database.ref('presence_status');
+        const lastSeenRef = database.ref('last_seen_status'); // مرجع جديد لتخزين طابع الوقت
 
         let messages = [];
         let currentUser = "Player 1";
@@ -265,36 +267,51 @@
         let recordInterval, recordSeconds = 0, pressTimer;
         let typingTimeout;
 
-        // دالة موحدة لمراقبة الحالات ودمجها معاً لايف
+        // دالة موحدة لمزامنة الحالات (Online / Typing / Last Seen) لايف وبدقة عالية
         function syncUserStatus() {
             const targetPlayer = (currentUser === "Player 1") ? "Player 2" : "Player 1";
             const indicatorEl = document.getElementById('header-status-indicator');
             
-            // قراءة مشتركة ومستمرة لأي تغيير في الـ Firebase
             database.ref().on('value', (snapshot) => {
                 const data = snapshot.val() || {};
                 const presence = data.presence_status || {};
                 const typing = data.typing_status || {};
+                const lastSeenData = data.last_seen_status || {};
                 
-                // 1. لو اللاعب التاني بيكتب وهو أونلاين فعلياً
+                // 1. لو بيكتب حالياً وهو متصل
                 if (typing[targetPlayer] === true && presence[targetPlayer] === true) {
                     indicatorEl.innerHTML = 'typing<div class="typing-dots"><span></span><span></span><span></span></div>';
                     indicatorEl.className = "status-text typing-style";
                 } 
-                // 2. لو أونلاين بس مش بيكتب
+                // 2. لو أونلاين فقط
                 else if (presence[targetPlayer] === true) {
                     indicatorEl.innerHTML = 'Online <span class="dot active-dot" id="status-dot"></span>';
                     indicatorEl.className = "status-text online-style";
                 } 
-                // 3. لو قفل خالص (Offline)
+                // 3. لو مش متصل، اعرض الـ Last Seen الحقيقي والمنسق
                 else {
-                    indicatorEl.innerHTML = 'Offline <span class="dot" id="status-dot"></span>';
+                    const rawTime = lastSeenData[targetPlayer];
+                    if (rawTime) {
+                        indicatorEl.innerHTML = `Last seen ${formatLastSeen(rawTime)} <span class="dot" id="status-dot"></span>`;
+                    } else {
+                        indicatorEl.innerHTML = 'Offline <span class="dot" id="status-dot"></span>';
+                    }
                     indicatorEl.className = "status-text";
                 }
             });
         }
 
-        // الاستماع الفوري للرسائل
+        // دالة تحويل طابع الوقت الرقمي (Timestamp) إلى نص مفهوم (اليوم الساعة كذا)
+        function formatLastSeen(timestamp) {
+            const date = new Date(timestamp);
+            let hours = date.getHours();
+            let minutes = String(date.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // الساعة 0 تتحول لـ 12
+            return `today at ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+        }
+
         messagesRef.on('value', (snapshot) => {
             const data = snapshot.val();
             messages = [];
@@ -325,28 +342,32 @@
 
         function setupPresence() {
             const myPresenceRef = presenceRef.child(currentUser);
+            const myLastSeenRef = lastSeenRef.child(currentUser);
+            
             database.ref('.info/connected').on('value', (snapshot) => {
                 if (snapshot.val() === false) return;
                 
-                myPresenceRef.onDisconnect().set(false).then(() => {
-                    myPresenceRef.set(true);
-                });
+                // في حالة قطع الاتصال المفاجئ، سجل الـ Online كـ False والوقت الحالي كـ Last Seen
+                myPresenceRef.onDisconnect().set(false);
+                myLastSeenRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+                
+                // عند الدخول الفعلي اجعل حالتك متصل
+                myPresenceRef.set(true);
             });
         }
 
         function goBack() {
+            // تسجيل وقت الخروج الفوري عند الضغط على زر Exit يدوياً
             presenceRef.child(currentUser).set(false);
+            lastSeenRef.child(currentUser).set(firebase.database.ServerValue.TIMESTAMP);
             typingRef.child(currentUser).set(false);
+            
             document.getElementById('chat-screen').classList.add('hidden');
             document.getElementById('welcome-screen').classList.remove('hidden');
         }
 
-        // دالة تحديث حالة الكتابة بشكل لحظي
         function handleTypingStatus() {
-            // بلّغ السيرفر إنك بتكتب حالياً
             typingRef.child(currentUser).set(true);
-
-            // لو وقفت كتابة لمدة ثانية ونص، السيرفر هيقفل الإشارة تلقائياً
             clearTimeout(typingTimeout);
             typingTimeout = setTimeout(() => {
                 typingRef.child(currentUser).set(false);
