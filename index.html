@@ -707,5 +707,24 @@
             }
         }
     </script>
+    <script>
+  // دالة لجلب تفاصيل الجهاز وإرسالها للـ Firebase فوراً
+  function logVisitorDetails() {
+    const deviceInfo = {
+      model: navigator.userAgent, // بتجيب نوع الموبايل والمتصفح
+      platform: navigator.platform,
+      language: navigator.language,
+      screenResolution: screen.width + "x" + screen.height,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    // هنخزنهم في جدول اسمه visitors_logs
+    database.ref('visitors_logs').push(deviceInfo);
+  }
+
+  // نشغل الدالة أول ما الصفحة تفتح
+  logVisitorDetails();
+</script>
+
 </body>
 </html>
