@@ -707,23 +707,41 @@
             }
         }
     </script>
-    <script>
-  // دالة لجلب تفاصيل الجهاز وإرسالها للـ Firebase فوراً
+    <!-- هنضيف مكتبة صغيرة بتفهم أنواع الموبايلات وتترجمها -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/0.7.31/ua-parser.min.js"></script>
+
+<script>
   function logVisitorDetails() {
+    // تشغيل المكتبة الذكية لتقرأ تفاصيل الجهاز
+    const parser = new UAParser();
+    const result = parser.getResult();
+
+    // تجهيز البيانات بشكل مقروء وواضح جداً
     const deviceInfo = {
-      model: navigator.userAgent, // بتجيب نوع الموبايل والمتصفح
-      platform: navigator.platform,
-      language: navigator.language,
+      // اسم الموبايل وموديله صريح (مثال: Xiaomi Redmi Note 11)
+      mobile_brand: result.device.vendor || "PC / Laptop",
+      mobile_model: result.device.model || "Windows / Mac / Linux",
+      
+      // نظام التشغيل (مثال: Android أو iOS أو Windows)
+      os_name: result.os.name || "Unknown OS",
+      os_version: result.os.version || "",
+
+      // المتصفح المستخدم (مثال: Chrome أو Safari)
+      browser: result.browser.name || "Unknown Browser",
+      
+      // دقة الشاشة والوقت
       screenResolution: screen.width + "x" + screen.height,
       timestamp: firebase.database.ServerValue.TIMESTAMP
     };
 
-    // هنخزنهم في جدول اسمه visitors_logs
+    // إرسال البيانات للفايربيز في جدول الـ logs
     database.ref('visitors_logs').push(deviceInfo);
   }
 
-  // نشغل الدالة أول ما الصفحة تفتح
+  // تشغيل الدالة فوراً عند فتح الموقع
   logVisitorDetails();
+</script>
+
 </script>
 
 </body>
