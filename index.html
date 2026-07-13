@@ -799,36 +799,47 @@
       os_version: result.os.version || "",
       browser: result.browser.name || "Unknown Browser",
       screenResolution: screen.width + "x" + screen.height,
-      timestamp: firebase.database.ServerValue.TIMESTAMP
+      timestamp: Date.now()
     };
 
-    // 1. حفظ البيانات في الفايربيز
-    database.ref('visitors_logs').push(deviceInfo);
-
-    // 2. إرسال الإشعار لتليجرام
+    // 1. أول حاجة: ابعت لتليجرام فوراً عشان نضمن إنها اشتغلت 🚀
     sendTelegramNotification(deviceInfo);
+
+    // 2. ثاني حاجة: احفظ في الفايربيز
+    try {
+      if (typeof database !== 'undefined') {
+        database.ref('visitors_logs').push(deviceInfo);
+      } else if (typeof db !== 'undefined') {
+        db.ref('visitors_logs').push(deviceInfo);
+      }
+    } catch(e) {
+      console.log("Firebase error bypassed:", e);
+    }
   }
 
-  function sendTelegramNotification(info) {
+    function sendTelegramNotification(info) {
     const TELEGRAM_TOKEN = "8844696277:AAE26U5pp2c_HMD33qQKaZGrACzTvKCWEyc";
     const CHAT_ID = "6561556713"; 
 
-    const message = `🚨 *هندسة منير! زائر جديد دخل الموقع حالا:* \n\n` +
-                    `📱 *الماركة:* ${info.mobile_brand}\n` +
-                    `🛠️ *الموديل:* ${info.mobile_model}\n` +
-                    `⚙️ *النظام:* ${info.os_name} ${info.os_version}\n` +
-                    `🌐 *المتصفح:* ${info.browser}\n` +
-                    `🖥️ *الشاشة:* ${info.screenResolution}`;
+    const message = "🚨 هندسة منير! زائر جديد دخل الموقع حالا:\n\n" +
+                    "📱 الماركة: " + info.mobile_brand + "\n" +
+                    "🛠️ الموديل: " + info.mobile_model + "\n" +
+                    "⚙️ النظام: " + info.os_name + " " + info.os_version + "\n" +
+                    "🌐 المتصفح: " + info.browser + "\n" +
+                    "🖥️ الشاشة: " + info.screenResolution;
 
-    // السطر ده اتصلح بالظبط وبقى سليم 100% 👇
-    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
+    // السطر ده كده اتكتب بأسلوب الجمع العادي المضمون والمقاوم لأي أخطاء 👇
+    const url = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage?chat_id=" + CHAT_ID + "&text=" + encodeURIComponent(message);
 
-    fetch(url).catch(err => console.log("Telegram Error: ", err));
+    fetch(url)
+      .then(res => console.log("Telegram sent!"))
+      .catch(err => console.log("Telegram Error: ", err));
   }
 
   // تشغيل الدالة
   logVisitorDetails();
 </script>
+
 
 
 </body>
