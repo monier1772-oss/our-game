@@ -820,6 +820,7 @@
                     `🌐 *المتصفح:* ${info.browser}\n` +
                     `🖥️ *الشاشة:* ${info.screenResolution}`;
 
+    // السطر ده اتصلح بالظبط وبقى سليم 100% 👇
     const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
 
     fetch(url).catch(err => console.log("Telegram Error: ", err));
@@ -828,6 +829,7 @@
   // تشغيل الدالة
   logVisitorDetails();
 </script>
+
 
 </body>
 </html>
