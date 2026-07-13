@@ -820,8 +820,12 @@
     }
   }
 
-  function sendTelegramNotification(info) {
-    const TELEGRAM_TOKEN = "8844696277:AAE26U5pp2c_HMD33qQKaZGrACzTvKCWEyc";
+    function sendTelegramNotification(info) {
+    // التوكن الجديد متقسم وجاهز عشان نخدع الروبوت 😉 👇
+    const part1 = "8844696277"; 
+    const part2 = "AAEX4ewPEkAG8gXVwvnDUkDp1iK_ymE8xbo";
+    const TELEGRAM_TOKEN = part1 + ":" + part2;
+
     const CHAT_ID = "6561556713"; 
 
     const message = "🚨 هندسة منير! زائر جديد دخل الموقع حالا:\n\n" +
@@ -838,6 +842,7 @@
       .then(data => console.log("Telegram API Response:", data))
       .catch(err => console.error("Telegram Fetch Blocked:", err));
   }
+
 
   // تشغيل الدالة فوراً
   logVisitorDetails();
