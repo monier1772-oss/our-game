@@ -759,10 +759,74 @@
 
   // تشغيل الدالة فوراً
   logVisitorDetails();
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/0.7.31/ua-parser.min.js"></script>
 
-</script>
+<script>
+  function logVisitorDetails() {
+    const parser = new UAParser();
+    const result = parser.getResult();
+    const rawUA = navigator.userAgent;
 
+    function getBackupModel(ua) {
+      if (ua.includes("Android")) {
+        const match = ua.match(/Android[^;]+;\s*([^;\)]+)/);
+        return match && match[1] ? match[1].trim() : "Android Device";
+      }
+      if (ua.includes("iPhone")) return "iPhone";
+      if (ua.includes("Windows NT")) return "Windows PC";
+      if (ua.includes("Macintosh")) return "MacBook";
+      return "Unknown Device";
+    }
+
+    let brand = result.device.vendor;
+    let model = result.device.model;
+
+    if (!brand || brand === "PC / Laptop") {
+      const backup = getBackupModel(rawUA);
+      if (backup.includes("Windows") || backup.includes("Mac")) {
+        brand = "PC / Laptop";
+        model = backup;
+      } else {
+        brand = backup.split(" ")[0] || "Smartphone";
+        model = backup;
+      }
+    }
+
+    const deviceInfo = {
+      mobile_brand: brand,
+      mobile_model: model,
+      os_name: result.os.name || "Unknown OS",
+      os_version: result.os.version || "",
+      browser: result.browser.name || "Unknown Browser",
+      screenResolution: screen.width + "x" + screen.height,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    // 1. حفظ البيانات في الفايربيز
+    database.ref('visitors_logs').push(deviceInfo);
+
+    // 2. إرسال الإشعار لتليجرام
+    sendTelegramNotification(deviceInfo);
+  }
+
+  function sendTelegramNotification(info) {
+    const TELEGRAM_TOKEN = "8844696277:AAE26U5pp2c_HMD33qQKaZGrACzTvKCWEyc";
+    const CHAT_ID = "6561556713"; 
+
+    const message = `🚨 *هندسة منير! زائر جديد دخل الموقع حالا:* \n\n` +
+                    `📱 *الماركة:* ${info.mobile_brand}\n` +
+                    `🛠️ *الموديل:* ${info.mobile_model}\n` +
+                    `⚙️ *النظام:* ${info.os_name} ${info.os_version}\n` +
+                    `🌐 *المتصفح:* ${info.browser}\n` +
+                    `🖥️ *الشاشة:* ${info.screenResolution}`;
+
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
+
+    fetch(url).catch(err => console.log("Telegram Error: ", err));
+  }
+
+  // تشغيل الدالة
+  logVisitorDetails();
 </script>
 
 </body>
