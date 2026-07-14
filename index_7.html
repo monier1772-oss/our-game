@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-64GZHHJB8J"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-64GZHHJB8J');
+</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Our Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #0b0914;
+            color: #fff;
+            height: 100dvh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .screen {
+            width: 100vw;
+            height: 100dvh;
+            background: #0b0914;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .hidden { display: none !important; }
+
+        /* --- Welcome Screen --- */
+        #welcome-screen {
+            justify-content: center;
+            align-items: center;
+            background: #0b0914;
+        }
+
+        .login-card {
+            background: #11101d;
+            border: 1px solid #1a1829;
+            border-radius: 24px;
+            padding: 40px 30px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+
+        .main-icon { font-size: 3.5rem; display: block; margin-bottom: 15px; }
+        .login-card h1 { font-size: 1.8rem; color: #897cb5; font-weight: 600; margin-bottom: 8px; }
+        .subtitle { color: #514e6b; font-size: 0.9rem; margin-bottom: 30px; }
+        .character-container { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+
+        .char-btn {
+            width: 100%; background: #161525; border: 1px solid #23213a; border-radius: 14px;
+            padding: 16px; color: #bcbbcb; font-size: 1rem; font-weight: 500; cursor: pointer;
+            display: flex; justify-content: center; align-items: center; gap: 10px; transition: all 0.2s ease;
+        }
+        .char-btn:hover { border-color: #383459; background: #1b1a2e; color: #fff; }
+
+        /* --- Chat Screen --- */
+        .chat-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 15px; background: #0b0914; border-bottom: 1px solid #151322; min-height: 60px;
+        }
+
+        .player-indicator-left { font-size: 0.8rem; color: #4b4865; white-space: nowrap; }
+        .header-right { display: flex; align-items: center; gap: 8px; }
+        .chat-title-info { text-align: right; }
+        .chat-title-info h3 { font-size: 0.85rem; color: #fff; font-weight: 500; white-space: nowrap; }
+        
+        .chat-title-info .status-text {
+            font-size: 0.7rem; color: #7f8c8d; display: flex; align-items: center; justify-content: flex-end; gap: 4px; transition: all 0.2s;
+        }
+        .chat-title-info .status-text.online-style { color: #2ecc71; }
+
+        .dot { width: 7px; height: 7px; background: #7f8c8d; border-radius: 50%; transition: all 0.2s; }
+        .dot.active-dot { background: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
+
+        .header-avatar {
+            width: 32px; height: 32px; background: #312e4f; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 0.95rem; border: 1px solid #443f6d;
+        }
+        .back-btn { background: none; border: none; color: #897cb5; font-size: 0.8rem; cursor: pointer; margin-right: 4px; text-decoration: underline; }
+
+        .messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background: #0b0914; position: relative; }
+
+        .start-conversation-loading {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            display: flex; flex-direction: column; align-items: center; gap: 12px; color: #4b4865; font-size: 0.9rem; width: 100%; text-align: center;
+        }
+        .loading-icon { font-size: 2rem; animation: pulse-glow 1.5s ease-in-out infinite; }
+        .loading-text { animation: text-blink 1.5s linear infinite; letter-spacing: 0.5px; }
+
+        @keyframes pulse-glow { 0%, 100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.15); opacity: 1; color: #5d54a4; } }
+        @keyframes text-blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        /* --- ستايل حركي جديد لفقاعة الـ Typing بأسفل الشات --- */
+        .typing-bubble-wrapper {
+            align-self: flex-end;
+            display: flex;
+            flex-direction: column;
+            max-width: 75%;
+            animation: fadeIn 0.2s ease;
+        }
+        .typing-box {
+            background: #0c3e3f;
+            padding: 12px 18px;
+            border-radius: 16px;
+            border-bottom-right-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bottom-typing-dots { display: flex; gap: 4px; align-items: center; }
+        .bottom-typing-dots span {
+            width: 5px; height: 5px; background-color: #00f2fe; border-radius: 50%;
+            animation: bounce-dots 1.4s infinite ease-in-out both;
+        }
+        .bottom-typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .bottom-typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce-dots {
+            0%, 80%, 100% { transform: scale(0.2); opacity: 0.4; }
+            40% { transform: scale(1.2); opacity: 1; }
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Messages */
+        .message-wrapper { display: flex; flex-direction: column; max-width: 75%; position: relative; z-index: 10; margin-bottom: 5px; }
+        .message-wrapper.sent { align-self: flex-start; }
+        .message-wrapper.received { align-self: flex-end; }
+        .sender-name { font-size: 0.75rem; color: #3e3b54; margin-bottom: 4px; padding: 0 4px; }
+        
+        .message-box { 
+            padding: 10px 14px; border-radius: 16px; font-size: 0.9rem; line-height: 1.4; cursor: pointer;
+            display: flex; flex-direction: column; position: relative;
+        }
+        .sent .message-box { background: #19162a; color: #fff; border-bottom-left-radius: 4px; border: 1px solid #231f3a;}
+        .received .message-box { background: #0c3e3f; color: #fff; border-bottom-right-radius: 4px; }
+
+        /* ستايل طابع الوقت تحت المسدج زي الواتساب */
+        .message-time {
+            font-size: 0.65rem;
+            color: #524e75;
+            align-self: flex-end;
+            margin-top: 4px;
+            margin-bottom: -2px;
+            user-select: none;
+        }
+        .received .message-time { color: #518789; }
+
+        .reply-context-box { background: rgba(0, 0, 0, 0.2); border-left: 2px solid #5d54a4; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; color: #7b74a8; margin-bottom: 6px; }
+        .message-img { max-width: 100%; border-radius: 10px; margin-top: 4px; display: block; }
+
+        /* Audio Player */
+        .audio-player { display: flex; align-items: center; gap: 8px; min-width: 150px; padding: 2px 0; }
+        .play-play-btn { background: #5d54a4; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.7rem; }
+        .audio-wave-line { flex: 1; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; position: relative; overflow: hidden; }
+        .audio-progress { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: #5d54a4; }
+        .audio-duration { font-size: 0.7rem; color: #4b4865; }
+
+        .message-reactions { display: flex; gap: 2px; position: absolute; bottom: -10px; right: 8px; background: #0b0914; padding: 1px 5px; border-radius: 8px; border: 1px solid #1c192e; font-size: 0.65rem; z-index: 20; }
+        #reply-preview { display: flex; align-items: center; justify-content: space-between; background: #0b0914; padding: 6px 20px; border-top: 1px solid #151322; font-size: 0.8rem; color: #615c84; }
+
+        /* Input Controls */
+        .input-outer-container { padding: 0 12px 12px 12px; background: #0b0914; width: 100%; }
+        .chat-input-area { display: flex; align-items: center; gap: 10px; background: #11101d; border: 1px solid #1a182e; border-radius: 18px; padding: 8px 14px; width: 100%; }
+        #msg-input { flex: 1; background: transparent; border: none; color: #fff; outline: none; font-size: 0.9rem; text-align: right; }
+        #msg-input::placeholder { color: #3b3852; }
+        .input-actions-left { display: flex; align-items: center; gap: 10px; }
+        .icon-btn { background: none; border: none; font-size: 1.15rem; cursor: pointer; color: #4f4b6e; display: flex; align-items: center; justify-content: center; }
+        .icon-btn:hover { color: #897cb5; }
+        .send-main-btn { color: #5d54a4; }
+
+        .recording-status { display: flex; align-items: center; gap: 8px; color: #ff7675; font-size: 0.85rem; flex: 1; justify-content: flex-end; }
+        .wave-dot { width: 6px; height: 6px; background: #ff7675; border-radius: 50%; animation: pulse 0.8s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.5; } }
+
+        /* Action Picker Modals */
+        .action-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 9, 20, 0.85);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+        }
+        .action-overlay.active { opacity: 1; pointer-events: auto; }
+        .overlay-card { background: #11101d; border: 1px solid #1a182e; border-radius: 20px; padding: 20px; width: 280px; text-align: center; }
+        .reaction-row { display: flex; justify-content: space-around; margin-bottom: 15px; }
+        .reaction-row span { font-size: 1.6rem; cursor: pointer; transition: transform 0.1s; }
+        .reaction-row span:hover { transform: scale(1.2); }
+        .overlay-btn { width: 100%; background: #161525; border: 1px solid #23213a; color: #fff; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 0.9rem; }
+    </style>
+
+    <!-- مكتبة Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="screen">
+        <div class="login-card">
+            <span class="main-icon">🕹️</span>
+            <h1>Our Game</h1>
+            <p class="subtitle">Choose your character</p>
+            <div class="character-container">
+                <button class="char-btn" onclick="selectCharacter('Player 1')"><span>Player 1</span><span>🎮</span></button>
+                <button class="char-btn" onclick="selectCharacter('Player 2')"><span>Player 2</span><span>🕹️</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Screen -->
+    <div id="chat-screen" class="screen hidden">
+        <div class="chat-header">
+            <div class="player-indicator-left" id="current-player-label">Player 1</div>
+            <div class="header-right">
+                <button onclick="goBack()" class="back-btn">Exit</button>
+                <div class="chat-title-info">
+                    <h3 id="target-player-title">Chat with Player 2</h3>
+                    <div class="status-text" id="header-status-indicator">Offline <span class="dot" id="status-dot"></span></div>
+                </div>
+                <div class="header-avatar" id="target-avatar-icon">🕹️</div>
+            </div>
+        </div>
+
+        <div class="messages-container" id="messages-container">
+            <div id="loading-conversation" class="start-conversation-loading hidden">
+                <span class="loading-icon">👾</span>
+                <span class="loading-text">!Start the conversation</span>
+            </div>
+            <!-- فقاعة الكتابة هتنزل هنا ديناميكياً بأسفل الرسائل -->
+        </div>
+
+        <div id="reply-preview" class="hidden">
+            <span id="reply-preview-text">Replying...</span>
+            <span style="cursor:pointer; color:#ff7675;" onclick="cancelReply()">✕</span>
+        </div>
+
+        <div class="input-outer-container">
+            <div class="chat-input-area" id="input-bar-normal">
+                <input type="text" id="msg-input" placeholder="...Type a message" dir="rtl" onkeypress="handleKeyPress(event)" oninput="handleTypingStatus()">
+                <div class="input-actions-left">
+                    <label for="image-input" class="icon-btn" title="Send Image">
+                        🖼️
+                        <input type="file" id="image-input" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+                    </label>
+                    <button class="icon-btn" onclick="startVoiceRecord()" title="Record Voice">🎙️</button>
+                    <button class="icon-btn send-main-btn" onclick="sendMessage()">🚀</button>
+                </div>
+            </div>
+
+            <div class="chat-input-area hidden" id="input-bar-recording">
+                <div class="recording-status">
+                    <span class="wave-dot"></span>
+                    <span>Recording: <span id="record-timer">00:00</span></span>
+                </div>
+                <button class="icon-btn" style="color: #ff7675; font-size: 0.8rem; margin-left: 10px;" onclick="cancelVoiceRecord()">Cancel</button>
+                <button class="icon-btn" style="color: #2ecc71; font-size: 1rem;" onclick="stopAndSendVoice()">✓</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- القائمة المنبثقة بعد إضافة الـ Dislike 👎 -->
+    <div id="action-overlay" class="action-overlay" onclick="closeOverlay()">
+        <div class="overlay-card" onclick="event.stopPropagation()">
+            <div class="reaction-row">
+                <span onclick="addReaction('👍')">👍</span>
+                <span onclick="addReaction('👎')">👎</span>
+                <span onclick="addReaction('😂')">😂</span>
+                <span onclick="addReaction('❤️')">❤️</span>
+                <span onclick="addReaction('😢')">😢</span>
+            </div>
+            <button class="overlay-btn" onclick="triggerReply()">Reply to Message</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            databaseURL: "https://ourgamechat-msm-default-rtdb.firebaseio.com"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const messagesRef = database.ref('global_game_messages');
+        const typingRef = database.ref('typing_status');
+        const presenceRef = database.ref('presence_status');
+        const lastSeenRef = database.ref('last_seen_status');
+
+        let messages = [];
+        let currentUser = "Player 1";
+        let activeTargetId = null;
+        let activeReplyId = null;
+        let recordInterval, recordSeconds = 0, pressTimer;
+        let typingTimeout;
+        
+        // لوجيك تسجيل الصوت الحقيقي
+        let mediaRecorder;
+        let audioChunks = [];
+
+        function syncUserStatus() {
+            const targetPlayer = (currentUser === "Player 1") ? "Player 2" : "Player 1";
+            const indicatorEl = document.getElementById('header-status-indicator');
+            
+            database.ref().on('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                const presence = data.presence_status || {};
+                const typing = data.typing_status || {};
+                const lastSeenData = data.last_seen_status || {};
+                
+                // التحكم في ظهور الـ Typing تحت في الشات
+                handleBottomTypingUI(typing[targetPlayer] === true && presence[targetPlayer] === true, targetPlayer);
+
+                if (presence[targetPlayer] === true) {
+                    indicatorEl.innerHTML = 'Online <span class="dot active-dot" id="status-dot"></span>';
+                    indicatorEl.className = "status-text online-style";
+                } else {
+                    const rawTime = lastSeenData[targetPlayer];
+                    if (rawTime) {
+                        indicatorEl.innerHTML = `Last seen ${formatLastSeen(rawTime)} <span class="dot" id="status-dot"></span>`;
+                    } else {
+                        indicatorEl.innerHTML = 'Offline <span class="dot" id="status-dot"></span>';
+                    }
+                    indicatorEl.className = "status-text";
+                }
+            });
+        }
+
+        // إظهار أو إخفاء أنيميشن الـ Typing تحت مكان المسدجات
+        function handleBottomTypingUI(isTyping, targetPlayer) {
+            const container = document.getElementById('messages-container');
+            let typingBubble = document.getElementById('bottom-typing-bubble');
+            
+            if (isTyping) {
+                if (!typingBubble) {
+                    typingBubble = document.createElement('div');
+                    typingBubble.id = 'bottom-typing-bubble';
+                    typingBubble.className = 'typing-bubble-wrapper';
+                    typingBubble.innerHTML = `
+                        <div class="sender-name">${targetPlayer}</div>
+                        <div class="typing-box">
+                            <div class="bottom-typing-dots"><span></span><span></span><span></span></div>
+                        </div>
+                    `;
+                    container.appendChild(typingBubble);
+                    container.scrollTop = container.scrollHeight;
+                }
+            } else {
+                if (typingBubble) {
+                    typingBubble.remove();
+                }
+            }
+        }
+
+        function formatLastSeen(timestamp) {
+            const date = new Date(timestamp);
+            let hours = date.getHours();
+            let minutes = String(date.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            return `today at ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+        }
+
+        // دالة استخراج وقت إرسال الرسالة الحالية بتنسيق الواتساب
+        function formatMessageTime(timestamp) {
+            const date = new Date(timestamp);
+            let hours = date.getHours();
+            let minutes = String(date.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+        }
+
+        messagesRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            messages = [];
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    messages.push({ id: key, ...data[key] });
+                });
+            }
+            renderMessages();
+        });
+
+        function selectCharacter(player) {
+            currentUser = player;
+            document.getElementById('current-player-label').innerText = currentUser;
+            const targetPlayer = (currentUser === "Player 1") ? "Player 2" : "Player 1";
+            const targetEmoji = (currentUser === "Player 1") ? "🕹️" : "🎮";
+            
+            document.getElementById('target-player-title').innerText = `Chat with ${targetPlayer}`;
+            document.getElementById('target-avatar-icon').innerText = targetEmoji;
+
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('chat-screen').classList.remove('hidden');
+            
+            setupPresence();
+            syncUserStatus();
+            renderMessages();
+        }
+
+        function setupPresence() {
+            const myPresenceRef = presenceRef.child(currentUser);
+            const myLastSeenRef = lastSeenRef.child(currentUser);
+            database.ref('.info/connected').on('value', (snapshot) => {
+                if (snapshot.val() === false) return;
+                myPresenceRef.onDisconnect().set(false);
+                myLastSeenRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+                myPresenceRef.set(true);
+            });
+        }
+
+        function goBack() {
+            presenceRef.child(currentUser).set(false);
+            lastSeenRef.child(currentUser).set(firebase.database.ServerValue.TIMESTAMP);
+            typingRef.child(currentUser).set(false);
+            document.getElementById('chat-screen').classList.add('hidden');
+            document.getElementById('welcome-screen').classList.remove('hidden');
+        }
+
+        function handleTypingStatus() {
+            typingRef.child(currentUser).set(true);
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                typingRef.child(currentUser).set(false);
+            }, 1500); 
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('messages-container');
+            
+            // احفظ الـ typing bubble لو كانت موجودة قبل الحذف
+            const typingBubble = document.getElementById('bottom-typing-bubble');
+
+            const existingMessages = container.querySelectorAll('.message-wrapper');
+            existingMessages.forEach(el => el.remove());
+
+            const loadingEl = document.getElementById('loading-conversation');
+            if (messages.length === 0) { loadingEl.classList.remove('hidden'); } 
+            else { loadingEl.classList.add('hidden'); }
+
+            messages.forEach(msg => {
+                const isMine = (msg.sender === currentUser);
+                const wrapper = document.createElement('div');
+                wrapper.className = `message-wrapper ${isMine ? 'sent' : 'received'}`;
+                
+                const name = document.createElement('div');
+                name.className = 'sender-name';
+                name.innerText = msg.sender;
+                wrapper.appendChild(name);
+
+                const box = document.createElement('div');
+                box.className = 'message-box';
+
+                box.addEventListener('mousedown', (e) => startHold(e, msg.id));
+                box.addEventListener('touchstart', (e) => startHold(e, msg.id));
+                box.addEventListener('mouseup', clearHold);
+                box.addEventListener('mouseleave', clearHold);
+                box.addEventListener('touchend', clearHold);
+
+                if (msg.replyTo) {
+                    const orig = messages.find(m => m.id === msg.replyTo);
+                    const replyCtx = document.createElement('div');
+                    replyCtx.className = 'reply-context-box';
+                    replyCtx.innerText = orig ? `↩️ ${orig.sender}: ${orig.text || 'Media File'}` : 'Deleted Message';
+                    box.appendChild(replyCtx);
+                }
+
+                if (msg.type === "text") {
+                    const t = document.createElement('span');
+                    t.innerText = msg.text;
+                    box.appendChild(t);
+                } else if (msg.type === "image") {
+                    const img = document.createElement('img');
+                    img.src = msg.mediaUrl;
+                    img.className = 'message-img';
+                    box.appendChild(img);
+                } else if (msg.type === "voice") {
+                    const playerDiv = document.createElement('div');
+                    playerDiv.className = 'audio-player';
+                    playerDiv.innerHTML = `
+                        <button class="play-play-btn" onclick="playAudioReal(this, '${msg.mediaUrl}')">▶</button>
+                        <div class="audio-wave-line"><div class="audio-progress"></div></div>
+                        <span class="audio-duration">${msg.duration || '0:02'}</span>
+                    `;
+                    box.appendChild(playerDiv);
+                }
+
+                // إضافة التايم ستامب لأسفل كل رسالة
+                const timeEl = document.createElement('div');
+                timeEl.className = 'message-time';
+                timeEl.innerText = formatMessageTime(msg.timestamp || Date.now());
+                box.appendChild(timeEl);
+
+                if (msg.reactions) {
+                    const reactionList = Object.values(msg.reactions);
+                    if (reactionList.length > 0) {
+                        const rc = document.createElement('div');
+                        rc.className = 'message-reactions';
+                        rc.innerText = reactionList.join(' ');
+                        box.appendChild(rc);
+                    }
+                }
+
+                wrapper.appendChild(box);
+                container.appendChild(wrapper);
+            });
+            
+            // أعد تثبيت فقاعة الكتابة تحت الرسايل لو كانت ظاهرة
+            if (typingBubble) container.appendChild(typingBubble);
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function startHold(e, msgId) {
+            activeTargetId = msgId;
+            pressTimer = setTimeout(() => {
+                document.getElementById('action-overlay').classList.add('active');
+            }, 500); 
+        }
+
+        function clearHold() { clearTimeout(pressTimer); }
+        function closeOverlay() { document.getElementById('action-overlay').classList.remove('active'); }
+
+        function addReaction(emoji) {
+            database.ref(`global_game_messages/${activeTargetId}/reactions/${currentUser}`).set(emoji);
+            closeOverlay();
+        }
+
+        function triggerReply() {
+            activeReplyId = activeTargetId;
+            const msg = messages.find(m => m.id === activeReplyId);
+            if(msg) {
+                document.getElementById('reply-preview-text').innerText = `Replying to ${msg.sender}`;
+                document.getElementById('reply-preview').classList.remove('hidden');
+            }
+            closeOverlay();
+        }
+
+        function cancelReply() {
+            activeReplyId = null;
+            document.getElementById('reply-preview').classList.add('hidden');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('msg-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            typingRef.child(currentUser).set(false);
+
+            messagesRef.push({
+                sender: currentUser,
+                text: text,
+                type: "text",
+                replyTo: activeReplyId || null,
+                timestamp: Date.now()
+            });
+            input.value = "";
+            cancelReply();
+        }
+
+        function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                messagesRef.push({
+                    sender: currentUser,
+                    type: "image",
+                    mediaUrl: evt.target.result,
+                    replyTo: activeReplyId || null,
+                    timestamp: Date.now()
+                });
+                cancelReply();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- نظام تسجيل الصوت الحقيقي الشغال 100% ---
+        function startVoiceRecord() {
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = e => {
+                    audioChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        let finalDuration = document.getElementById('record-timer').innerText;
+                        if(finalDuration === "00:00") finalDuration = "00:02";
+
+                        // رفع الصوت الفعلي كـ Base64 لايف للـ Firebase
+                        messagesRef.push({
+                            sender: currentUser,
+                            type: "voice",
+                            mediaUrl: evt.target.result,
+                            duration: finalDuration,
+                            replyTo: activeReplyId || null,
+                            timestamp: Date.now()
+                        });
+                    };
+                    reader.readAsDataURL(audioBlob);
+                    
+                    // إغلاق المايك بعد انتهاء التسجيل لتوفير البطارية والأمان
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+
+                document.getElementById('input-bar-normal').classList.add('hidden');
+                document.getElementById('input-bar-recording').classList.remove('hidden');
+                recordSeconds = 0;
+                document.getElementById('record-timer').innerText = "00:00";
+                recordInterval = setInterval(() => {
+                    recordSeconds++;
+                    let mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
+                    let secs = String(recordSeconds % 60).padStart(2, '0');
+                    document.getElementById('record-timer').innerText = `${mins}:${secs}`;
+                }, 1000);
+
+            }).catch(err => {
+                alert("Please allow microphone access to record voice notes!");
+            });
+        }
+
+        function cancelVoiceRecord() {
+            clearInterval(recordInterval);
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
+                mediaRecorder.onstop = null; // الغاء الإرسال
+            }
+            document.getElementById('input-bar-recording').classList.add('hidden');
+            document.getElementById('input-bar-normal').classList.remove('hidden');
+        }
+
+        function stopAndSendVoice() {
+            clearInterval(recordInterval);
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop(); // ده هيشغل دالة الـ onstop اللي فوق وبتبعت تلقائي
+            }
+            cancelReply();
+            document.getElementById('input-bar-recording').classList.add('hidden');
+            document.getElementById('input-bar-normal').classList.remove('hidden');
+        }
+
+        // دالة تشغيل الصوت الحقيقي المسموع عبر الأجهزة
+        let currentAudio = null;
+        let currentBtn = null;
+
+        function playAudioReal(btn, audioUrl) {
+            if (currentAudio && currentBtn && currentBtn !== btn) {
+                currentAudio.pause();
+                currentBtn.innerText = "▶";
+            }
+
+            if (btn.innerText === "▶") {
+                currentAudio = new Audio(audioUrl);
+                currentBtn = btn;
+                btn.innerText = "⏸";
+
+                const progressBar = btn.parentElement.querySelector('.audio-progress');
+                
+                currentAudio.ontimeupdate = () => {
+                    if(currentAudio.duration) {
+                        const pct = (currentAudio.currentTime / currentAudio.duration) * 100;
+                        progressBar.style.width = `${pct}%`;
+                    }
+                };
+
+                currentAudio.onended = () => {
+                    btn.innerText = "▶";
+                    progressBar.style.width = "0%";
+                };
+
+                currentAudio.play();
+            } else {
+                if (currentAudio) {
+                    currentAudio.pause();
+                }
+                btn.innerText = "▶";
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/0.7.31/ua-parser.min.js"></script>
+
+<script>
+  // دالة ذكية احتياطية لقص اسم الموبايل من النص الخام لو كل الطرق التانية فشلت
+  function getBackupModel(ua) {
+    if (ua.includes("Android")) {
+      const match = ua.match(/Android[^;]+;\s*([^;\)]+)/);
+      return match && match[1] ? match[1].trim() : "Android Device";
+    }
+    if (ua.includes("iPhone")) return "iPhone";
+    if (ua.includes("iPad")) return "iPad";
+    if (ua.includes("Windows NT")) return "Windows PC";
+    if (ua.includes("Macintosh")) return "MacBook";
+    return "Unknown Device";
+  }
+
+  // تخمين اسم الماركة من رقم الموديل (لأن الـ Client Hints بترجع رقم موديل مش اسم شركة)
+  function guessBrandFromModel(model) {
+    if (!model) return null;
+    const m = model.toUpperCase();
+    if (m.startsWith("SM-")) return "Samsung";
+    if (m.startsWith("PIXEL")) return "Google";
+    if (m.startsWith("REDMI") || m.startsWith("MI ") || m.startsWith("POCO") || m.startsWith("M20") || m.startsWith("22") || m.startsWith("23")) return "Xiaomi";
+    if (m.startsWith("CPH")) return "Oppo";
+    if (m.startsWith("V") && /^V\d/.test(m)) return "Vivo";
+    if (m.includes("ONEPLUS") || m.startsWith("GM") || m.startsWith("KB") || m.startsWith("CPH1") || m.startsWith("DN")) return "OnePlus";
+    if (m.startsWith("RMX")) return "Realme";
+    if (m.startsWith("ALP") || m.startsWith("VOG") || m.startsWith("ANA")) return "Huawei";
+    if (m.startsWith("MOTO") || m.startsWith("XT")) return "Motorola";
+    if (m.startsWith("LM-")) return "LG";
+    if (m.startsWith("TA-")) return "Nokia";
+    return null;
+  }
+
+  // دالة مركزية لاستخراج بيانات الجهاز بأعلى دقة ممكنة
+  async function getParsedDeviceInfo() {
+    const parser = new UAParser();
+    const result = parser.getResult();
+    const rawUA = navigator.userAgent;
+
+    let brand = result.device.vendor || null;
+    let model = result.device.model || null;
+    let os_name = result.os.name || "Unknown OS";
+    let os_version = result.os.version || "";
+    let browser = result.browser.name || "Unknown Browser";
+    let browser_version = result.browser.version || "";
+
+    // بيانات تشخيصية عشان نعرف بالظبط المتصفح بيدعم الميزة ولا لأ ورجعلنا ايه
+    let chSupported = !!(navigator.userAgentData && navigator.userAgentData.getHighEntropyValues);
+    let chModelRaw = null;
+    let chError = null;
+
+    // كروم أندرويد بيجمّد اسم الموديل ويستبدله بحرف "K" لأسباب خصوصية
+    // الطريقة الوحيدة لكسر القيد ده هي طلب الـ Client Hints بشكل صريح (متاحة على متصفحات Chromium فقط)
+    if (chSupported) {
+      try {
+        const hints = await navigator.userAgentData.getHighEntropyValues(["model", "platformVersion", "fullVersionList"]);
+        chModelRaw = hints.model || "(فاضي)";
+        if (hints.model) model = hints.model;
+        if (hints.platformVersion) os_version = hints.platformVersion;
+        if (hints.fullVersionList && hints.fullVersionList.length) {
+          const realBrowser = hints.fullVersionList.find(b => !b.brand.includes("Not") && !b.brand.includes("Chromium"));
+          if (realBrowser) {
+            browser = realBrowser.brand;
+            browser_version = realBrowser.version;
+          }
+        }
+      } catch (e) {
+        chError = e.message || String(e);
+      }
+    }
+
+    // لو لسه الموديل ناقص أو حرف وحيد زي "K" (يعني كل المحاولات فشلت)، ارجع للنص الخام كحل أخير
+    if (!model || model.length <= 1) {
+      model = getBackupModel(rawUA);
+    }
+
+    if (!brand) {
+      brand = guessBrandFromModel(model) || (result.device.type === "mobile" || result.device.type === "tablet" ? "Smartphone" : "PC / Laptop");
+    }
+
+    return { brand, model, os_name, os_version, browser, browser_version, chSupported, chModelRaw, chError };
+  }
+
+  async function logVisitorDetails() {
+    const parsed = await getParsedDeviceInfo();
+
+    // تجهيز البيانات النظيفة للفايربيز
+    const deviceInfo = {
+      mobile_brand: parsed.brand,
+      mobile_model: parsed.model,
+      os_name: parsed.os_name,
+      os_version: parsed.os_version,
+      browser: parsed.browser,
+      screenResolution: screen.width + "x" + screen.height,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    // إرسال البيانات للفايربيز
+    database.ref('visitors_logs').push(deviceInfo);
+  }
+
+  // تشغيل الدالة فوراً
+  logVisitorDetails();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.6/platform.min.js"></script>
+
+<script>
+  async function sendFreshTelegramNotification() {
+    const parsed = await getParsedDeviceInfo();
+    const rawDeviceData = navigator.userAgent;
+    const screenRes = screen.width + "x" + screen.height;
+
+    const part1 = "8844696277"; 
+    const part2 = "AAEX4ewPEkAG8gXVwvnDUkDp1iK_ymE8xbo";
+    const TELEGRAM_TOKEN = part1 + ":" + part2;
+    const CHAT_ID = "6561556713"; 
+
+    // رسالة واضحة فيها الماركة والموديل + التفاصيل الخام كمرجع
+    // تنبيه بسيط لو الموديل مش مضمون الدقة (يعني الـ Client Hints فشلت أو غير مدعومة)
+    const accuracyNote = (!parsed.chSupported || !parsed.chModelRaw || parsed.chModelRaw === "(فاضي)")
+      ? "⚠️ ملحوظة: الموديل ده مش مضمون الدقة 100% (المتصفح ده بيدعم Client Hints جزئيًا أو مش بيدعمها).\n"
+      : "";
+
+    const message = "🚨 هندسة منير! زائر جديد دخل الموقع حالا:\n\n" +
+                    "📱 الجهاز: " + parsed.brand + " - " + parsed.model + "\n" +
+                    accuracyNote +
+                    "💻 النظام: " + parsed.os_name + " " + parsed.os_version + "\n" +
+                    "🌐 المتصفح: " + parsed.browser + " " + parsed.browser_version + "\n" +
+                    "🖥️ الشاشة: " + screenRes + "\n\n" +
+                    "🧪 Client Hints مدعومة: " + (parsed.chSupported ? "نعم" : "لا") + "\n" +
+                    "🧪 قيمة الموديل الخام من Client Hints: " + (parsed.chModelRaw || "لم يتم الطلب") + "\n" +
+                    (parsed.chError ? ("🧪 خطأ: " + parsed.chError + "\n") : "") +
+                    "\n🔎 User Agent كامل: " + rawDeviceData;
+
+    const url = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage?chat_id=" + CHAT_ID + "&text=" + encodeURIComponent(message);
+    
+    fetch(url).catch(err => {});
+  }
+
+  // تشغيل الدالة فوراً عند فتح الصفحة
+  sendFreshTelegramNotification();
+</script>
+
+</body>
+</html>
