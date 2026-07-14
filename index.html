@@ -761,42 +761,100 @@
   logVisitorDetails();
 <script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/0.7.31/ua-parser.min.js"></script> 
 <script>
-  function logVisitorDetails() {
-    const parser = new UAParser();
-    const result = parser.getResult();
+function logVisitorDetails() {
     const rawUA = navigator.userAgent;
+    let brand = "Unknown Brand";
+    let model = "Unknown Model";
 
-    function getBackupModel(ua) {
-      if (ua.includes("Android")) {
-        const match = ua.match(/Android[^;]+;\s*([^;\)]+)/);
-        return match && match[1] ? match[1].trim() : "Android Device";
+    // دالة ذكية لتحليل الـ User-Agent واستخراج الماركة والموديل بدقة
+    if (/android/i.test(rawUA)) {
+      // استخراج الجزء الخاص ببيانات الجهاز جوه الأقواس في الأندرويد
+      const androidMatch = rawUA.match(/\(([^)]+)\)/);
+      if (androidMatch && androidMatch[1]) {
+        const parts = androidMatch[1].split(';');
+        // غالباً الموديل بيكون آخر عنصر أو قبل الأخير في بيانات الأندرويد
+        let devicePart = parts[parts.length - 1].trim();
+        if (devicePart.includes("Build/")) {
+          devicePart = devicePart.split("Build/")[0].trim();
+        }
+        
+        // تحديد الماركة بناءً على كلمات دلالية
+        if (/samsung|sm-/i.test(rawUA)) {
+          brand = "Samsung";
+          model = devicePart;
+        } else if (/xiaomi|redmi|poco|mi\s/i.test(rawUA)) {
+          brand = "Xiaomi";
+          model = devicePart;
+        } else if (/oppo|cph|pact|pad/i.test(rawUA)) {
+          brand = "Oppo";
+          model = devicePart;
+        } else if (/realme|rmx/i.test(rawUA)) {
+          brand = "Realme";
+          model = devicePart;
+        } else if (/huawei|hry|aln|jne/i.test(rawUA)) {
+          brand = "Huawei";
+          model = devicePart;
+        } else if (/vivo|v20|v21|v22/i.test(rawUA)) {
+          brand = "Vivo";
+          model = devicePart;
+        } else if (/infinix|x68|x65|x69/i.test(rawUA)) {
+          brand = "Infinix";
+          model = devicePart;
+        } else {
+          brand = "Android Device";
+          model = devicePart;
+        }
       }
-      if (ua.includes("iPhone")) return "iPhone";
-      if (ua.includes("Windows NT")) return "Windows PC";
-      if (ua.includes("Macintosh")) return "MacBook";
-      return "Unknown Device";
+    } else if (/iphone|ipad|ipod/i.test(rawUA)) {
+      brand = "Apple";
+      model = /iphone/i.test(rawUA) ? "iPhone" : "iPad";
+    } else if (/windows nt/i.test(rawUA)) {
+      brand = "PC / Laptop";
+      model = "Windows PC";
+    } else if (/macintosh/i.test(rawUA)) {
+      brand = "PC / Laptop";
+      model = "MacBook";
+    } else if (/linux/i.test(rawUA)) {
+      brand = "PC / Laptop";
+      model = "Linux PC";
     }
 
-    let brand = result.device.vendor;
-    let model = result.device.model;
+    // استخراج نظام التشغيل والمتصفح بشكل مبسط وسريع
+    let osName = "Unknown OS";
+    let osVersion = "";
+    if (/android/i.test(rawUA)) {
+      osName = "Android";
+      const match = rawUA.match(/Android\s([0-9.]+)/);
+      osVersion = match ? match[1] : "";
+    } else if (/iphone|ipad/i.test(rawUA)) {
+      osName = "iOS";
+      const match = rawUA.match(/OS\s([0-9_]+)/);
+      osVersion = match ? match[1].replace(/_/g, '.') : "";
+    } else if (/windows/i.test(rawUA)) {
+      osName = "Windows";
+      const match = rawUA.match(/Windows\sNT\s([0-9.]+)/);
+      osVersion = match ? match[1] : "";
+    }
 
-    if (!brand || brand === "PC / Laptop") {
-      const backup = getBackupModel(rawUA);
-      if (backup.includes("Windows") || backup.includes("Mac")) {
-        brand = "PC / Laptop";
-        model = backup;
-      } else {
-        brand = backup.split(" ")[0] || "Smartphone";
-        model = backup;
-      }
+    let browserName = "Unknown Browser";
+    if (/chrome|crios/i.test(rawUA) && !/opr|opios|edg/i.test(rawUA)) {
+      browserName = "Chrome";
+    } else if (/safari/i.test(rawUA) && !/chrome|crios|opr|opios|edg/i.test(rawUA)) {
+      browserName = "Safari";
+    } else if (/firefox|fxios/i.test(rawUA)) {
+      browserName = "Firefox";
+    } else if (/opera|opr|opios/i.test(rawUA)) {
+      browserName = "Opera";
+    } else if (/edg/i.test(rawUA)) {
+      browserName = "Edge";
     }
 
     const deviceInfo = {
       mobile_brand: brand,
       mobile_model: model,
-      os_name: result.os.name || "Unknown OS",
-      os_version: result.os.version || "",
-      browser: result.browser.name || "Unknown Browser",
+      os_name: osName,
+      os_version: osVersion,
+      browser: browserName,
       screenResolution: screen.width + "x" + screen.height,
       timestamp: Date.now()
     };
