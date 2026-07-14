@@ -763,41 +763,39 @@
 
 <script>
   function logVisitorDetails() {
-    // قراءة البيانات مباشرة من المكتبة الذكية
-    let brand = platform.manufacturer || "Android";
-    let model = platform.product || "Device";
-    
-    // لو لسه جايب قيم عامة، نعمل تشييك سريع على النص
     const rawUA = navigator.userAgent;
-    if (brand === "Android" || brand === "Device") {
-      if (/samsung|sm-/i.test(rawUA)) brand = "Samsung";
-      else if (/xiaomi|redmi|poco/i.test(rawUA)) brand = "Xiaomi";
-      else if (/oppo|cph/i.test(rawUA)) brand = "Oppo";
-      else if (/realme|rmx/i.test(rawUA)) brand = "Realme";
-    }
+    let brand = "Android";
+    let model = "Device";
 
-    if (model === "Device" || model === "Unknown Device") {
+    // تشريح سريع ومضمون للنص اللي جاي من الموبايل
+    if (/android/i.test(rawUA)) {
       const match = rawUA.match(/\(([^)]+)\)/);
       if (match && match[1]) {
+        // هنا هيجيب السطر اللي جوه الأقواس في موبايلك بالظبط وهيتبعت كامل عشان تشوفه في تليجرام
         const parts = match[1].split(';');
-        let filtered = parts.map(p => p.trim()).filter(p => !/linux|android|arm|build/i.test(p) && p.length > 2);
-        if (filtered.length > 0) {
-          model = filtered[filtered.length - 1].split("Build/")[0].trim();
+        if (parts.length > 2) {
+          brand = parts[1].trim();
+          model = parts[parts.length - 1].split("Build/")[0].trim();
         }
       }
+    } else if (/iphone|ipad/i.test(rawUA)) {
+      brand = "Apple";
+      model = "iPhone/iPad";
+    } else if (/windows/i.test(rawUA)) {
+      brand = "PC";
+      model = "Windows Laptop";
     }
 
     const deviceInfo = {
       mobile_brand: brand,
       mobile_model: model,
-      os_name: platform.os.family || "Android",
-      os_version: platform.os.version || "10",
-      browser: platform.name || "Chrome",
-      screenResolution: screen.width + "x" + screen.height,
-      timestamp: Date.now()
+      os_name: /android/i.test(rawUA) ? "Android" : "iOS/Windows",
+      os_version: "",
+      browser: "Browser",
+      screenResolution: screen.width + "x" + screen.height
     };
 
-    // إرسال الإشعار لتليجرام
+    // إرسال الإشعار فوراً
     sendTelegramNotification(deviceInfo);
 
     // حفظ البيانات في الفايربيز
@@ -816,8 +814,6 @@
     const message = "🚨 هندسة منير! زائر جديد دخل الموقع حالا:\n\n" +
                     "📱 الماركة: " + info.mobile_brand + "\n" +
                     "🛠️ الموديل: " + info.mobile_model + "\n" +
-                    "⚙️ النظام: " + info.os_name + " " + info.os_version + "\n" +
-                    "🌐 المتصفح: " + info.browser + "\n" +
                     "🖥️ الشاشة: " + info.screenResolution;
 
     const url = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage?chat_id=" + CHAT_ID + "&text=" + encodeURIComponent(message);
@@ -827,7 +823,6 @@
   // تشغيل الدالة فوراً
   logVisitorDetails();
 </script>
-
 
 
 
