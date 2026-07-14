@@ -759,24 +759,24 @@
 
   // تشغيل الدالة فوراً
   logVisitorDetails();
-<script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/0.7.31/ua-parser.min.js"></script> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.6/platform.min.js"></script>
+
 <script>
-  function getFreshVisitorLogs() {
+  function logVisitorDetails() {
+    // قراءة البيانات مباشرة من المكتبة الذكية
+    let brand = platform.manufacturer || "Android";
+    let model = platform.product || "Device";
+    
+    // لو لسه جايب قيم عامة، نعمل تشييك سريع على النص
     const rawUA = navigator.userAgent;
-    let brand = "Android Device";
-    let model = "Unknown Device";
-
-    if (/android/i.test(rawUA)) {
-      // تحديد الماركة فوراً
+    if (brand === "Android" || brand === "Device") {
       if (/samsung|sm-/i.test(rawUA)) brand = "Samsung";
-      else if (/xiaomi|redmi|poco|mi\s/i.test(rawUA)) brand = "Xiaomi";
-      else if (/oppo|cph|pact/i.test(rawUA)) brand = "Oppo";
+      else if (/xiaomi|redmi|poco/i.test(rawUA)) brand = "Xiaomi";
+      else if (/oppo|cph/i.test(rawUA)) brand = "Oppo";
       else if (/realme|rmx/i.test(rawUA)) brand = "Realme";
-      else if (/huawei/i.test(rawUA)) brand = "Huawei";
-      else if (/vivo/i.test(rawUA)) brand = "Vivo";
-      else if (/infinix/i.test(rawUA)) brand = "Infinix";
+    }
 
-      // قنص الموديل من الأقواس
+    if (model === "Device" || model === "Unknown Device") {
       const match = rawUA.match(/\(([^)]+)\)/);
       if (match && match[1]) {
         const parts = match[1].split(';');
@@ -785,39 +785,19 @@
           model = filtered[filtered.length - 1].split("Build/")[0].trim();
         }
       }
-    } else if (/iphone|ipad|ipod/i.test(rawUA)) {
-      brand = "Apple";
-      model = /iphone/i.test(rawUA) ? "iPhone" : "iPad";
-    } else if (/windows nt/i.test(rawUA)) {
-      brand = "PC / Laptop";
-      model = "Windows PC";
-    } else if (/macintosh/i.test(rawUA)) {
-      brand = "PC / Laptop";
-      model = "MacBook";
     }
-
-    let osName = /android/i.test(rawUA) ? "Android" : /iphone|ipad/i.test(rawUA) ? "iOS" : /windows/i.test(rawUA) ? "Windows" : "Unknown OS";
-    let osVersion = "";
-    if (osName === "Android") {
-      const m = rawUA.match(/Android\s([0-9.]+)/);
-      osVersion = m ? m[1] : "";
-    }
-
-    let browserName = "Chrome";
-    if (/firefox/i.test(rawUA)) browserName = "Firefox";
-    else if (/safari/i.test(rawUA) && !/chrome/i.test(rawUA)) browserName = "Safari";
 
     const deviceInfo = {
       mobile_brand: brand,
       mobile_model: model,
-      os_name: osName,
-      os_version: osVersion,
-      browser: browserName,
+      os_name: platform.os.family || "Android",
+      os_version: platform.os.version || "10",
+      browser: platform.name || "Chrome",
       screenResolution: screen.width + "x" + screen.height,
       timestamp: Date.now()
     };
 
-    // إرسال الإشعار
+    // إرسال الإشعار لتليجرام
     sendTelegramNotification(deviceInfo);
 
     // حفظ البيانات في الفايربيز
@@ -844,7 +824,8 @@
     fetch(url).catch(err => {});
   }
 
-  getFreshVisitorLogs();
+  // تشغيل الدالة فوراً
+  logVisitorDetails();
 </script>
 
 
