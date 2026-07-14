@@ -761,54 +761,42 @@
   logVisitorDetails();
 <script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/0.7.31/ua-parser.min.js"></script> 
 <script>
-function logVisitorDetails() {
+  function logVisitorDetails() {
     const rawUA = navigator.userAgent;
-    let brand = "Unknown Brand";
+    let brand = "Android Device";
     let model = "Unknown Model";
 
-    // 1. تحديد ماركة الجهاز
+    // 1. تحديد الماركة والموديل بذكاء من الـ User-Agent
     if (/android/i.test(rawUA)) {
-      if (/samsung|sm-/i.test(rawUA)) {
-        brand = "Samsung";
-      } else if (/xiaomi|redmi|poco|mi\s/i.test(rawUA)) {
-        brand = "Xiaomi";
-      } else if (/oppo|cph|pact|pad/i.test(rawUA)) {
-        brand = "Oppo";
-      } else if (/realme|rmx/i.test(rawUA)) {
-        brand = "Realme";
-      } else if (/huawei|hry|aln|jne/i.test(rawUA)) {
-        brand = "Huawei";
-      } else if (/vivo|v20|v21|v22/i.test(rawUA)) {
-        brand = "Vivo";
-      } else if (/infinix|x68|x65|x69/i.test(rawUA)) {
-        brand = "Infinix";
-      } else {
-        brand = "Android Device";
+      // قنص الأقواس اللي فيها تفاصيل الموبايل
+      const match = rawUA.match(/\(([^)]+)\)/);
+      if (match && match[1]) {
+        const dataParts = match[1].split(';');
+        
+        // تنظيف وفلترة العناصر عشان نوصل للموديل الصريح
+        let validParts = dataParts.map(p => p.trim()).filter(p => {
+          return !/linux|android|arm|build/i.test(p) && p.length > 2;
+        });
+
+        if (validParts.length > 0) {
+          // الموديل غالباً بيكون آخر عنصر متبقي
+          let rawModel = validParts[validParts.length - 1];
+          if (rawModel.includes("Build/")) {
+            rawModel = rawModel.split("Build/")[0].trim();
+          }
+          model = rawModel;
+        }
       }
 
-      // 2. استخراج الموديل بدقة (حتى لو كود مصنعي)
-      const androidMatch = rawUA.match(/\(([^)]+)\)/);
-      if (androidMatch && androidMatch[1]) {
-        const parts = androidMatch[1].split(';');
-        // البحث عن جزء يحتوي على أرقام وحروف وهو الموديل الشائع في الأندرويد
-        let detectedModel = "";
-        for (let i = 0; i < parts.length; i++) {
-          let part = parts[i].trim();
-          if (part.includes("Build/") || /linux|android|arm/i.test(part)) {
-            continue;
-          }
-          // الموديل غالباً بيكون الجزء الأخير قبل كلمة Build أو الجزء اللي بيحتوي على حروف كابيتال وأرقام
-          detectedModel = part;
-        }
-        
-        if (detectedModel) {
-          model = detectedModel;
-        } else {
-          // محاولة بديلة لو ملقاش جزء واضح
-          let lastPart = parts[parts.length - 1].trim();
-          model = lastPart.split("Build/")[0].trim();
-        }
-      }
+      // تحديد الماركة بشكل منفصل بناءً على الكلمات الدلالية
+      if (/samsung|sm-/i.test(rawUA)) brand = "Samsung";
+      else if (/xiaomi|redmi|poco|mi\s/i.test(rawUA)) brand = "Xiaomi";
+      else if (/oppo|cph|pact/i.test(rawUA)) brand = "Oppo";
+      else if (/realme|rmx/i.test(rawUA)) brand = "Realme";
+      else if (/huawei/i.test(rawUA)) brand = "Huawei";
+      else if (/vivo/i.test(rawUA)) brand = "Vivo";
+      else if (/infinix/i.test(rawUA)) brand = "Infinix";
+      
     } else if (/iphone|ipad|ipod/i.test(rawUA)) {
       brand = "Apple";
       model = /iphone/i.test(rawUA) ? "iPhone" : "iPad";
@@ -820,7 +808,7 @@ function logVisitorDetails() {
       model = "MacBook";
     }
 
-    // استخراج نظام التشغيل والمتصفح
+    // 2. تحديد النظام والمتصفح
     let osName = "Unknown OS";
     let osVersion = "";
     if (/android/i.test(rawUA)) {
@@ -833,18 +821,12 @@ function logVisitorDetails() {
       osVersion = match ? match[1].replace(/_/g, '.') : "";
     } else if (/windows/i.test(rawUA)) {
       osName = "Windows";
-      const match = rawUA.match(/Windows\sNT\s([0-9.]+)/);
-      osVersion = match ? match[1] : "";
     }
 
-    let browserName = "Unknown Browser";
-    if (/chrome|crios/i.test(rawUA) && !/opr|opios|edg/i.test(rawUA)) {
-      browserName = "Chrome";
-    } else if (/safari/i.test(rawUA) && !/chrome|crios|opr|opios|edg/i.test(rawUA)) {
-      browserName = "Safari";
-    } else if (/firefox|fxios/i.test(rawUA)) {
-      browserName = "Firefox";
-    }
+    let browserName = "Chrome";
+    if (/firefox/i.test(rawUA)) browserName = "Firefox";
+    else if (/safari/i.test(rawUA) && !/chrome/i.test(rawUA)) browserName = "Safari";
+    else if (/edg/i.test(rawUA)) browserName = "Edge";
 
     const deviceInfo = {
       mobile_brand: brand,
@@ -870,12 +852,11 @@ function logVisitorDetails() {
       console.error("Firebase DB Error:", e);
     }
   }
-    function sendTelegramNotification(info) {
-    // التوكن الجديد متقسم وجاهز عشان نخدع الروبوت 😉 👇
+
+  function sendTelegramNotification(info) {
     const part1 = "8844696277"; 
     const part2 = "AAEX4ewPEkAG8gXVwvnDUkDp1iK_ymE8xbo";
     const TELEGRAM_TOKEN = part1 + ":" + part2;
-
     const CHAT_ID = "6561556713"; 
 
     const message = "🚨 هندسة منير! زائر جديد دخل الموقع حالا:\n\n" +
@@ -887,14 +868,10 @@ function logVisitorDetails() {
 
     const url = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage?chat_id=" + CHAT_ID + "&text=" + encodeURIComponent(message);
 
-    fetch(url)
-      .then(res => res.json())
-      .then(data => console.log("Telegram API Response:", data))
-      .catch(err => console.error("Telegram Fetch Blocked:", err));
+    fetch(url).catch(err => console.error("Telegram Blocked:", err));
   }
 
-
-  // تشغيل الدالة فوراً
+  // تشغيل الدالة فوراً عند فتح الصفحة
   logVisitorDetails();
 </script>
 
