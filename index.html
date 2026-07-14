@@ -766,43 +766,47 @@ function logVisitorDetails() {
     let brand = "Unknown Brand";
     let model = "Unknown Model";
 
-    // دالة ذكية لتحليل الـ User-Agent واستخراج الماركة والموديل بدقة
+    // 1. تحديد ماركة الجهاز
     if (/android/i.test(rawUA)) {
-      // استخراج الجزء الخاص ببيانات الجهاز جوه الأقواس في الأندرويد
+      if (/samsung|sm-/i.test(rawUA)) {
+        brand = "Samsung";
+      } else if (/xiaomi|redmi|poco|mi\s/i.test(rawUA)) {
+        brand = "Xiaomi";
+      } else if (/oppo|cph|pact|pad/i.test(rawUA)) {
+        brand = "Oppo";
+      } else if (/realme|rmx/i.test(rawUA)) {
+        brand = "Realme";
+      } else if (/huawei|hry|aln|jne/i.test(rawUA)) {
+        brand = "Huawei";
+      } else if (/vivo|v20|v21|v22/i.test(rawUA)) {
+        brand = "Vivo";
+      } else if (/infinix|x68|x65|x69/i.test(rawUA)) {
+        brand = "Infinix";
+      } else {
+        brand = "Android Device";
+      }
+
+      // 2. استخراج الموديل بدقة (حتى لو كود مصنعي)
       const androidMatch = rawUA.match(/\(([^)]+)\)/);
       if (androidMatch && androidMatch[1]) {
         const parts = androidMatch[1].split(';');
-        // غالباً الموديل بيكون آخر عنصر أو قبل الأخير في بيانات الأندرويد
-        let devicePart = parts[parts.length - 1].trim();
-        if (devicePart.includes("Build/")) {
-          devicePart = devicePart.split("Build/")[0].trim();
+        // البحث عن جزء يحتوي على أرقام وحروف وهو الموديل الشائع في الأندرويد
+        let detectedModel = "";
+        for (let i = 0; i < parts.length; i++) {
+          let part = parts[i].trim();
+          if (part.includes("Build/") || /linux|android|arm/i.test(part)) {
+            continue;
+          }
+          // الموديل غالباً بيكون الجزء الأخير قبل كلمة Build أو الجزء اللي بيحتوي على حروف كابيتال وأرقام
+          detectedModel = part;
         }
         
-        // تحديد الماركة بناءً على كلمات دلالية
-        if (/samsung|sm-/i.test(rawUA)) {
-          brand = "Samsung";
-          model = devicePart;
-        } else if (/xiaomi|redmi|poco|mi\s/i.test(rawUA)) {
-          brand = "Xiaomi";
-          model = devicePart;
-        } else if (/oppo|cph|pact|pad/i.test(rawUA)) {
-          brand = "Oppo";
-          model = devicePart;
-        } else if (/realme|rmx/i.test(rawUA)) {
-          brand = "Realme";
-          model = devicePart;
-        } else if (/huawei|hry|aln|jne/i.test(rawUA)) {
-          brand = "Huawei";
-          model = devicePart;
-        } else if (/vivo|v20|v21|v22/i.test(rawUA)) {
-          brand = "Vivo";
-          model = devicePart;
-        } else if (/infinix|x68|x65|x69/i.test(rawUA)) {
-          brand = "Infinix";
-          model = devicePart;
+        if (detectedModel) {
+          model = detectedModel;
         } else {
-          brand = "Android Device";
-          model = devicePart;
+          // محاولة بديلة لو ملقاش جزء واضح
+          let lastPart = parts[parts.length - 1].trim();
+          model = lastPart.split("Build/")[0].trim();
         }
       }
     } else if (/iphone|ipad|ipod/i.test(rawUA)) {
@@ -814,12 +818,9 @@ function logVisitorDetails() {
     } else if (/macintosh/i.test(rawUA)) {
       brand = "PC / Laptop";
       model = "MacBook";
-    } else if (/linux/i.test(rawUA)) {
-      brand = "PC / Laptop";
-      model = "Linux PC";
     }
 
-    // استخراج نظام التشغيل والمتصفح بشكل مبسط وسريع
+    // استخراج نظام التشغيل والمتصفح
     let osName = "Unknown OS";
     let osVersion = "";
     if (/android/i.test(rawUA)) {
@@ -843,10 +844,6 @@ function logVisitorDetails() {
       browserName = "Safari";
     } else if (/firefox|fxios/i.test(rawUA)) {
       browserName = "Firefox";
-    } else if (/opera|opr|opios/i.test(rawUA)) {
-      browserName = "Opera";
-    } else if (/edg/i.test(rawUA)) {
-      browserName = "Edge";
     }
 
     const deviceInfo = {
@@ -859,10 +856,10 @@ function logVisitorDetails() {
       timestamp: Date.now()
     };
 
-    // 1. إرسال الإشعار لتليجرام أولاً
+    // إرسال الإشعار لتليجرام أولاً
     sendTelegramNotification(deviceInfo);
 
-    // 2. حفظ البيانات في الفايربيز
+    // حفظ البيانات في الفايربيز
     try {
       if (typeof database !== 'undefined') {
         database.ref('visitors_logs').push(deviceInfo);
@@ -873,7 +870,6 @@ function logVisitorDetails() {
       console.error("Firebase DB Error:", e);
     }
   }
-
     function sendTelegramNotification(info) {
     // التوكن الجديد متقسم وجاهز عشان نخدع الروبوت 😉 👇
     const part1 = "8844696277"; 
