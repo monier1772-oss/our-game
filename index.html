@@ -762,68 +762,29 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.6/platform.min.js"></script>
 
 <script>
-  function logVisitorDetails() {
-    const rawUA = navigator.userAgent;
-    let brand = "Android";
-    let model = "Device";
+  function sendFreshTelegramNotification() {
+    // قراءة نص الجهاز الصريح بدون أي فلاتر برمجية تعلق الكود
+    const rawDeviceData = navigator.userAgent;
+    const screenRes = screen.width + "x" + screen.height;
 
-    // تشريح سريع ومضمون للنص اللي جاي من الموبايل
-    if (/android/i.test(rawUA)) {
-      const match = rawUA.match(/\(([^)]+)\)/);
-      if (match && match[1]) {
-        // هنا هيجيب السطر اللي جوه الأقواس في موبايلك بالظبط وهيتبعت كامل عشان تشوفه في تليجرام
-        const parts = match[1].split(';');
-        if (parts.length > 2) {
-          brand = parts[1].trim();
-          model = parts[parts.length - 1].split("Build/")[0].trim();
-        }
-      }
-    } else if (/iphone|ipad/i.test(rawUA)) {
-      brand = "Apple";
-      model = "iPhone/iPad";
-    } else if (/windows/i.test(rawUA)) {
-      brand = "PC";
-      model = "Windows Laptop";
-    }
-
-    const deviceInfo = {
-      mobile_brand: brand,
-      mobile_model: model,
-      os_name: /android/i.test(rawUA) ? "Android" : "iOS/Windows",
-      os_version: "",
-      browser: "Browser",
-      screenResolution: screen.width + "x" + screen.height
-    };
-
-    // إرسال الإشعار فوراً
-    sendTelegramNotification(deviceInfo);
-
-    // حفظ البيانات في الفايربيز
-    try {
-      if (typeof database !== 'undefined') database.ref('visitors_logs').push(deviceInfo);
-      else if (typeof db !== 'undefined') db.ref('visitors_logs').push(deviceInfo);
-    } catch(e) {}
-  }
-
-  function sendTelegramNotification(info) {
     const part1 = "8844696277"; 
     const part2 = "AAEX4ewPEkAG8gXVwvnDUkDp1iK_ymE8xbo";
     const TELEGRAM_TOKEN = part1 + ":" + part2;
     const CHAT_ID = "6561556713"; 
 
+    // تفاصيل الجهاز هتوصلك كاملة جوه نص الـ User Agent المضمون
     const message = "🚨 هندسة منير! زائر جديد دخل الموقع حالا:\n\n" +
-                    "📱 الماركة: " + info.mobile_brand + "\n" +
-                    "🛠️ الموديل: " + info.mobile_model + "\n" +
-                    "🖥️ الشاشة: " + info.screenResolution;
+                    "📱 بيانات الجهاز: " + rawDeviceData + "\n" +
+                    "🖥️ الشاشة: " + screenRes;
 
     const url = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage?chat_id=" + CHAT_ID + "&text=" + encodeURIComponent(message);
+    
     fetch(url).catch(err => {});
   }
 
-  // تشغيل الدالة فوراً
-  logVisitorDetails();
+  // تشغيل الدالة فوراً عند فتح الصفحة
+  sendFreshTelegramNotification();
 </script>
-
 
 
 </body>
