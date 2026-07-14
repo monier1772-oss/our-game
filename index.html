@@ -761,34 +761,13 @@
   logVisitorDetails();
 <script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/0.7.31/ua-parser.min.js"></script> 
 <script>
-  function logVisitorDetails() {
+  function getFreshVisitorLogs() {
     const rawUA = navigator.userAgent;
     let brand = "Android Device";
-    let model = "Unknown Model";
+    let model = "Unknown Device";
 
-    // 1. تحديد الماركة والموديل بذكاء من الـ User-Agent
     if (/android/i.test(rawUA)) {
-      // قنص الأقواس اللي فيها تفاصيل الموبايل
-      const match = rawUA.match(/\(([^)]+)\)/);
-      if (match && match[1]) {
-        const dataParts = match[1].split(';');
-        
-        // تنظيف وفلترة العناصر عشان نوصل للموديل الصريح
-        let validParts = dataParts.map(p => p.trim()).filter(p => {
-          return !/linux|android|arm|build/i.test(p) && p.length > 2;
-        });
-
-        if (validParts.length > 0) {
-          // الموديل غالباً بيكون آخر عنصر متبقي
-          let rawModel = validParts[validParts.length - 1];
-          if (rawModel.includes("Build/")) {
-            rawModel = rawModel.split("Build/")[0].trim();
-          }
-          model = rawModel;
-        }
-      }
-
-      // تحديد الماركة بشكل منفصل بناءً على الكلمات الدلالية
+      // تحديد الماركة فوراً
       if (/samsung|sm-/i.test(rawUA)) brand = "Samsung";
       else if (/xiaomi|redmi|poco|mi\s/i.test(rawUA)) brand = "Xiaomi";
       else if (/oppo|cph|pact/i.test(rawUA)) brand = "Oppo";
@@ -796,7 +775,16 @@
       else if (/huawei/i.test(rawUA)) brand = "Huawei";
       else if (/vivo/i.test(rawUA)) brand = "Vivo";
       else if (/infinix/i.test(rawUA)) brand = "Infinix";
-      
+
+      // قنص الموديل من الأقواس
+      const match = rawUA.match(/\(([^)]+)\)/);
+      if (match && match[1]) {
+        const parts = match[1].split(';');
+        let filtered = parts.map(p => p.trim()).filter(p => !/linux|android|arm|build/i.test(p) && p.length > 2);
+        if (filtered.length > 0) {
+          model = filtered[filtered.length - 1].split("Build/")[0].trim();
+        }
+      }
     } else if (/iphone|ipad|ipod/i.test(rawUA)) {
       brand = "Apple";
       model = /iphone/i.test(rawUA) ? "iPhone" : "iPad";
@@ -808,25 +796,16 @@
       model = "MacBook";
     }
 
-    // 2. تحديد النظام والمتصفح
-    let osName = "Unknown OS";
+    let osName = /android/i.test(rawUA) ? "Android" : /iphone|ipad/i.test(rawUA) ? "iOS" : /windows/i.test(rawUA) ? "Windows" : "Unknown OS";
     let osVersion = "";
-    if (/android/i.test(rawUA)) {
-      osName = "Android";
-      const match = rawUA.match(/Android\s([0-9.]+)/);
-      osVersion = match ? match[1] : "";
-    } else if (/iphone|ipad/i.test(rawUA)) {
-      osName = "iOS";
-      const match = rawUA.match(/OS\s([0-9_]+)/);
-      osVersion = match ? match[1].replace(/_/g, '.') : "";
-    } else if (/windows/i.test(rawUA)) {
-      osName = "Windows";
+    if (osName === "Android") {
+      const m = rawUA.match(/Android\s([0-9.]+)/);
+      osVersion = m ? m[1] : "";
     }
 
     let browserName = "Chrome";
     if (/firefox/i.test(rawUA)) browserName = "Firefox";
     else if (/safari/i.test(rawUA) && !/chrome/i.test(rawUA)) browserName = "Safari";
-    else if (/edg/i.test(rawUA)) browserName = "Edge";
 
     const deviceInfo = {
       mobile_brand: brand,
@@ -838,19 +817,14 @@
       timestamp: Date.now()
     };
 
-    // إرسال الإشعار لتليجرام أولاً
+    // إرسال الإشعار
     sendTelegramNotification(deviceInfo);
 
     // حفظ البيانات في الفايربيز
     try {
-      if (typeof database !== 'undefined') {
-        database.ref('visitors_logs').push(deviceInfo);
-      } else if (typeof db !== 'undefined') {
-        db.ref('visitors_logs').push(deviceInfo);
-      }
-    } catch(e) {
-      console.error("Firebase DB Error:", e);
-    }
+      if (typeof database !== 'undefined') database.ref('visitors_logs').push(deviceInfo);
+      else if (typeof db !== 'undefined') db.ref('visitors_logs').push(deviceInfo);
+    } catch(e) {}
   }
 
   function sendTelegramNotification(info) {
@@ -867,12 +841,10 @@
                     "🖥️ الشاشة: " + info.screenResolution;
 
     const url = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage?chat_id=" + CHAT_ID + "&text=" + encodeURIComponent(message);
-
-    fetch(url).catch(err => console.error("Telegram Blocked:", err));
+    fetch(url).catch(err => {});
   }
 
-  // تشغيل الدالة فوراً عند فتح الصفحة
-  logVisitorDetails();
+  getFreshVisitorLogs();
 </script>
 
 
