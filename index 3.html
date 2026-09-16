@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="ar" dir="auto">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#120f22">
+<meta name="color-scheme" content="dark">
+<title>Our Game</title>
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-64GZHHJB8J"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-64GZHHJB8J');
+</script>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<!-- UAParser.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/1.0.37/ua-parser.min.js"></script>
+
+<style>
+:root{
+  --bg:#0b0914;
+  --text:#ffffff;
+  --accent:#897cb5;
+  --accent-dim:#897cb540;
+  --bubble-sent:#1c1930;
+  --bubble-received:#2b8f86;
+  --muted:#9a93b3;
+  --online:#3ddc84;
+  --offline:#6b6580;
+  --danger:#e05c5c;
+  --radius:20px;
+  --radius-sm:14px;
+  --app-max:1000px;
+  --media-max:240px;
+  --panel:#120f22;
+  --line:#221d3a;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+
+html,body{
+  margin:0;padding:0;
+  width:100%;max-width:100%;height:100dvh;
+  overflow:hidden;overscroll-behavior:none;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-text-size-adjust:100%;
+}
+
+#app{
+  width:100%;height:100dvh;
+  position:relative;overflow:hidden;
+  margin:0 auto;
+}
+
+.screen{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;
+  transform:translateY(8px);
+  transition:opacity .35s ease, transform .35s ease;
+}
+.screen.active{opacity:1;pointer-events:auto;transform:translateY(0);}
+
+/* ---------- Welcome Screen ---------- */
+#welcomeScreen{
+  align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 20%, #17132b 0%, #0b0914 70%);
+  padding:24px;
+  text-align:center;
+  overflow-y:auto;
+}
+.welcome-title{
+  font-size:clamp(26px,7vw,42px);font-weight:800;margin-bottom:6px;
+  background:linear-gradient(90deg,#fff,#897cb5);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.welcome-sub{color:var(--muted);font-size:clamp(13px,3.4vw,16px);margin-bottom:clamp(24px,6vh,44px);}
+.player-select{
+  display:flex;gap:clamp(12px,3vw,22px);flex-wrap:wrap;justify-content:center;
+  width:100%;max-width:520px;
+}
+.player-card{
+  flex:1 1 140px;max-width:190px;min-width:130px;
+  padding:clamp(20px,4vh,30px) 14px;
+  background:#151129;border:1px solid #262040;
+  border-radius:var(--radius);
+  cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.player-card:active{transform:scale(.96);}
+@media (hover:hover) and (pointer:fine){
+  .player-card:hover{border-color:var(--accent);box-shadow:0 8px 24px var(--accent-dim);transform:translateY(-3px);}
+}
+.player-card .emoji{font-size:clamp(34px,8vw,44px);}
+.player-card .p-name{font-weight:700;font-size:15px;}
+.player-card .p-sub{font-size:12px;color:var(--muted);}
+
+/* ---------- Chat Screen ---------- */
+#chatScreen{background:var(--bg);}
+
+.chat-header{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;
+  background:#120f22;
+  border-bottom:1px solid #221d3a;
+  flex-shrink:0;
+}
+.exit-btn{
+  background:none;border:none;color:var(--text);
+  font-size:20px;cursor:pointer;padding:6px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s;
+}
+.exit-btn:active{background:#221d3a;}
+.avatar{
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#4b3f7a);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;position:relative;
+}
+.status-dot{
+  width:11px;height:11px;border-radius:50%;
+  position:absolute;bottom:-1px;right:-1px;
+  border:2px solid #120f22;
+  background:var(--offline);
+  transition:background .3s;
+}
+.status-dot.online{background:var(--online);}
+.header-info{flex:1;min-width:0;}
+.header-target{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.header-status{font-size:12px;color:var(--muted);}
+.header-you{font-size:11px;color:var(--accent);margin-inline-start:auto;padding:4px 10px;background:var(--accent-dim);border-radius:20px;white-space:nowrap;}
+
+.messages-container{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:16px 12px 8px;
+  display:flex;flex-direction:column;gap:2px;
+  scroll-behavior:smooth;
+}
+.messages-container::-webkit-scrollbar{width:5px;}
+.messages-container::-webkit-scrollbar-thumb{background:#2a2444;border-radius:10px;}
+
+.msg-row{
+  display:flex;flex-direction:column;
+  max-width:78%;
+  margin:6px 0;
+  animation:fadeIn .28s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.msg-row.sent{align-self:flex-start;align-items:flex-start;}
+.msg-row.received{align-self:flex-end;align-items:flex-end;}
+
+.msg-sender{font-size:11px;color:var(--muted);margin:0 8px 3px;font-weight:600;}
+
+.bubble{
+  padding:10px 13px;
+  border-radius:var(--radius-sm);
+  position:relative;
+  word-break:break-word;
+  font-size:14.5px;line-height:1.4;
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+  cursor:pointer;
+  user-select:none;
+  transition:transform .12s;
+}
+.bubble:active{transform:scale(.98);}
+/* الميديا محتاجة padding أقل من النص */
+.bubble:has(.media-wrap), .bubble:has(img.msg-media){padding:5px;}
+.msg-row.sent .bubble{background:var(--bubble-sent);border-bottom-left-radius:4px;}
+.msg-row.received .bubble{background:var(--bubble-received);border-bottom-right-radius:4px;color:#04211d;}
+
+.reply-quote{
+  border-inline-start:3px solid var(--accent);
+  background:rgba(255,255,255,.08);
+  padding:5px 8px;border-radius:8px;
+  font-size:12px;margin-bottom:6px;
+  opacity:.85;max-width:100%;
+  line-height:1.35;word-break:break-word;
+  white-space:normal;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;text-overflow:ellipsis;
+}
+
+.bubble img.msg-media{
+  width:var(--media-max);max-width:100%;max-height:320px;height:auto;
+  border-radius:12px;display:block;cursor:zoom-in;
+  background:#0f0c1d;object-fit:cover;
+}
+
+/* ---------- Video thumbnail ---------- */
+.media-wrap{
+  position:relative;display:block;
+  width:var(--media-max);max-width:100%;
+  aspect-ratio:16/10;
+  border-radius:12px;overflow:hidden;
+  background:#0f0c1d;
+  cursor:pointer;touch-action:manipulation;
+}
+.media-wrap video.msg-media{
+  width:100%;height:100%;object-fit:cover;display:block;
+  background:#0f0c1d;
+  pointer-events:none; /* كل اللمسات تروح للـ wrapper مش للفيديو */
+}
+.media-wrap::after{
+  content:"";position:absolute;inset:0;z-index:1;
+  background:linear-gradient(180deg,rgba(0,0,0,.05) 40%,rgba(0,0,0,.4));
+  pointer-events:none;
+}
+.play-badge{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:54px;height:54px;border-radius:50%;
+  background:rgba(0,0,0,.55);
+  border:1.5px solid rgba(255,255,255,.6);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:#fff;padding-left:3px;
+  z-index:2;pointer-events:none;
+  transition:transform .18s ease;
+}
+.media-wrap:active .play-badge{transform:translate(-50%,-50%) scale(.88);}
+.video-tag{
+  position:absolute;bottom:7px;left:9px;
+  z-index:2;pointer-events:none;direction:ltr;
+  font-size:11px;color:#fff;background:rgba(0,0,0,.6);
+  padding:2px 7px;border-radius:8px;
+  font-variant-numeric:tabular-nums;
+}
+
+.voice-player{display:flex;align-items:center;gap:8px;min-width:180px;}
+.voice-play-btn{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--accent);border:none;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;font-size:14px;
+}
+.voice-progress-wrap{flex:1;height:4px;background:rgba(255,255,255,.25);border-radius:4px;overflow:hidden;}
+.voice-progress-bar{height:100%;width:0%;background:var(--text);border-radius:4px;}
+.voice-duration{font-size:11px;color:inherit;opacity:.85;min-width:32px;}
+
+.msg-meta{display:flex;align-items:center;gap:6px;margin:2px 8px 0;}
+.msg-time{font-size:10.5px;color:var(--muted);}
+
+.msg-reactions{
+  display:flex;gap:2px;margin-top:2px;
+  background:#151129;border-radius:10px;padding:2px 6px;
+  font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.3);
+  align-self:inherit;
+}
+
+/* Reaction popup */
+.reaction-popup{
+  position:fixed;z-index:60;
+  background:#181430;border:1px solid #2a2444;
+  border-radius:30px;padding:6px 8px;
+  display:flex;gap:4px;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+  animation:popIn .18s ease;
+}
+@keyframes popIn{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
+.reaction-popup span{
+  font-size:22px;cursor:pointer;padding:4px;
+  transition:transform .15s;
+  display:inline-block;
+}
+.reaction-popup span:active{transform:scale(1.3);}
+
+/* Typing indicator */
+.typing-indicator{
+  display:none;align-items:center;gap:6px;
+  padding:6px 14px;font-size:12px;color:var(--muted);
+  flex-shrink:0;
+}
+.typing-indicator.show{display:flex;}
+.typing-dots{display:flex;gap:3px;}
+.typing-dots span{
+  width:6px;height:6px;border-radius:50%;background:var(--accent);
+  animation:pulse 1.2s infinite ease-in-out;
+}
+.typing-dots span:nth-child(2){animation-delay:.2s;}
+.typing-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes pulse{0%,60%,100%{opacity:.3;transform:scale(.8);}30%{opacity:1;transform:scale(1);}}
+
+/* Reply preview bar */
+.reply-preview{
+  display:none;align-items:center;gap:10px;
+  padding:8px 14px;background:#151129;
+  border-top:1px solid #221d3a;
+  flex-shrink:0;
+}
+.reply-preview.show{display:flex;}
+.reply-preview-content{flex:1;min-width:0;}
+.reply-preview-label{font-size:11px;color:var(--accent);font-weight:700;}
+.reply-preview-text{
+  font-size:12.5px;color:var(--muted);
+  line-height:1.3;word-break:break-word;
+  white-space:normal;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;text-overflow:ellipsis;
+}
+.reply-preview-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;}
+
+/* Input bar */
+.input-bar{
+  display:flex;align-items:flex-end;gap:6px;
+  flex-wrap:nowrap;
+  padding:10px 10px;
+  padding-bottom:calc(10px + env(safe-area-inset-bottom));
+  background:#120f22;
+  border-top:1px solid #221d3a;
+  flex-shrink:0;
+  width:100%;
+  max-width:100%;
+}
+.icon-btn{
+  width:38px;height:38px;min-width:34px;border-radius:50%;
+  background:#1c1930;border:none;color:var(--text);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;cursor:pointer;flex-shrink:0;
+  transition:background .2s, transform .15s;
+}
+.icon-btn:active{transform:scale(.92);background:#262040;}
+.icon-btn.recording{background:var(--danger);animation:pulse 1s infinite;}
+
+.text-input-wrap{
+  flex:1 1 auto;min-width:0;display:flex;align-items:center;
+  background:#1c1930;border-radius:22px;
+  padding:0 6px 0 14px;
+  min-height:38px;
+}
+#messageInput{
+  flex:1 1 auto;min-width:0;width:100%;background:none;border:none;outline:none;
+  color:var(--text);font-size:16px; /* 16px يمنع الزوم التلقائي في iOS */
+  padding:9px 0;resize:none;max-height:120px;
+  font-family:inherit;line-height:1.35;
+}
+#messageInput::placeholder{color:var(--muted);}
+
+.send-btn{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--accent);border:none;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;flex-shrink:0;
+  transition:transform .15s, opacity .2s;
+}
+.send-btn:active{transform:scale(.9);}
+.send-btn.loading{pointer-events:none;}
+.send-btn .spinner{
+  width:16px;height:16px;border:2px solid rgba(255,255,255,.4);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin .7s linear infinite;display:none;
+}
+.send-btn.loading .spinner{display:block;}
+.send-btn.loading .send-icon{display:none;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Voice recording UI */
+.recording-ui{
+  display:none;align-items:center;gap:10px;
+  flex:1 1 auto;min-width:0;padding:0 6px;
+}
+.recording-ui.show{display:flex;}
+.rec-dot{width:10px;height:10px;border-radius:50%;background:var(--danger);animation:pulse 1s infinite;flex-shrink:0;}
+.rec-timer{font-size:14px;font-variant-numeric:tabular-nums;flex-shrink:0;}
+.rec-hint{flex:1;min-width:0;font-size:12px;color:var(--muted);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rec-cancel,.rec-send{
+  background:none;border:none;font-size:20px;cursor:pointer;
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.rec-cancel{color:var(--danger);}
+.rec-send{color:var(--accent);}
+
+/* Lightbox */
+.lightbox{
+  position:fixed;inset:0;z-index:80;
+  background:rgba(0,0,0,.94);
+  display:none;align-items:center;justify-content:center;
+  padding:16px;
+  padding-top:calc(72px + env(safe-area-inset-top));
+  padding-bottom:calc(20px + env(safe-area-inset-bottom));
+}
+.lightbox.show{display:flex;animation:fadeIn .2s ease;}
+#lightboxContent{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+}
+.lightbox img,.lightbox video{
+  display:block;
+  max-width:min(100%,1000px);
+  max-height:100%;
+  width:auto;height:auto;
+  border-radius:12px;background:#000;
+  outline:none;
+}
+.lightbox video{width:min(100%,900px);}
+.lightbox-actions{
+  position:absolute;
+  top:calc(14px + env(safe-area-inset-top));
+  right:14px;left:14px;
+  display:flex;align-items:center;justify-content:space-between;
+  z-index:2;
+}
+.lb-btn{
+  width:42px;height:42px;border-radius:50%;
+  background:rgba(255,255,255,.14);border:none;color:#fff;
+  font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  text-decoration:none;flex-shrink:0;
+  transition:background .2s,transform .15s;
+}
+.lb-btn:active{transform:scale(.9);}
+@media (hover:hover) and (pointer:fine){ .lb-btn:hover{background:rgba(255,255,255,.26);} }
+
+/* Hidden file inputs */
+.hidden-input{display:none;}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+/* --- Small phones --- */
+@media (max-width:360px){
+  .icon-btn{width:34px;height:34px;min-width:32px;font-size:15px;}
+  .send-btn{width:36px;height:36px;font-size:15px;}
+  .input-bar{gap:4px;padding:8px 8px;padding-bottom:calc(8px + env(safe-area-inset-bottom));}
+  .header-you{display:none;}
+  .msg-row{max-width:86%;}
+  .avatar{width:38px;height:38px;font-size:18px;}
+  :root{--media-max:200px;}
+}
+
+/* --- Landscape / short screens --- */
+@media (max-height:520px) and (orientation:landscape){
+  .chat-header{padding:8px 14px;}
+  .avatar{width:34px;height:34px;font-size:16px;}
+  .messages-container{padding:10px 12px 6px;}
+  .msg-row{max-width:62%;}
+  #welcomeScreen{padding:14px;}
+  .welcome-sub{margin-bottom:16px;}
+  .player-card{padding:14px 12px;}
+}
+
+/* --- Tablet --- */
+@media (min-width:600px){
+  .msg-row{max-width:70%;}
+  :root{--media-max:280px;}
+}
+
+/* --- Laptop / desktop: centered app shell --- */
+@media (min-width:900px){
+  body{background:radial-gradient(circle at 18% 0%, #1a1436 0%, #0b0914 62%);}
+  #app{
+    max-width:var(--app-max);
+    height:calc(100dvh - 40px);
+    margin:20px auto;
+    border:1px solid var(--line);
+    border-radius:24px;
+    box-shadow:0 26px 70px rgba(0,0,0,.6);
+  }
+  .screen{border-radius:24px;overflow:hidden;}
+  .chat-header{padding:16px 22px;}
+  .messages-container{padding:22px 26px 10px;}
+  .msg-row{max-width:62%;}
+  .bubble{font-size:15px;padding:11px 15px;}
+  #messageInput{font-size:15px;}
+  .input-bar{padding:12px 18px;gap:8px;}
+  .icon-btn{width:40px;height:40px;font-size:18px;}
+  .send-btn{width:42px;height:42px;}
+  .reply-preview{padding:10px 20px;}
+  .typing-indicator{padding:6px 22px;}
+  :root{--media-max:320px;}
+}
+
+@media (min-width:1280px){
+  #app{max-width:1120px;}
+  .msg-row{max-width:55%;}
+}
+
+/* --- Pointer devices: hover states + selectable text --- */
+@media (hover:hover) and (pointer:fine){
+  .icon-btn:hover{background:#262040;}
+  .send-btn:hover{filter:brightness(1.1);}
+  .exit-btn:hover{background:#221d3a;}
+  .bubble{user-select:text;}
+  .bubble:hover{filter:brightness(1.07);}
+  .messages-container::-webkit-scrollbar{width:8px;}
+  .messages-container::-webkit-scrollbar-thumb{background:#322a52;}
+  .messages-container::-webkit-scrollbar-thumb:hover{background:#413764;}
+}
+
+/* --- Reduced motion --- */
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+  .messages-container{scroll-behavior:auto;}
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- WELCOME SCREEN -->
+  <div id="welcomeScreen" class="screen active">
+    <div class="welcome-title">Our Game 🎮</div>
+    <div class="welcome-sub">اختر شخصيتك للدخول</div>
+    <div class="player-select">
+      <div class="player-card" data-player="Player 1">
+        <div class="emoji">🎮</div>
+        <div class="p-name">Player 1</div>
+        <div class="p-sub">دخول كـ Player 1</div>
+      </div>
+      <div class="player-card" data-player="Player 2">
+        <div class="emoji">🕹️</div>
+        <div class="p-name">Player 2</div>
+        <div class="p-sub">دخول كـ Player 2</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT SCREEN -->
+  <div id="chatScreen" class="screen">
+    <div class="chat-header">
+      <button class="exit-btn" id="exitBtn">←</button>
+      <div class="avatar" id="targetAvatar">
+        🕹️
+        <div class="status-dot" id="statusDot"></div>
+      </div>
+      <div class="header-info">
+        <div class="header-target" id="targetTitle">Player 2</div>
+        <div class="header-status" id="headerStatus">غير متصل</div>
+      </div>
+      <div class="header-you" id="youLabel">أنت: Player 1</div>
+    </div>
+
+    <div class="messages-container" id="messagesContainer"></div>
+
+    <div class="typing-indicator" id="typingIndicator">
+      <div class="typing-dots"><span></span><span></span><span></span></div>
+      <span id="typingText">Player 2 is typing...</span>
+    </div>
+
+    <div class="reply-preview" id="replyPreview">
+      <div class="reply-preview-content">
+        <div class="reply-preview-label">الرد على <span id="replyToName"></span></div>
+        <div class="reply-preview-text" id="replyToText"></div>
+      </div>
+      <button class="reply-preview-close" id="replyPreviewClose">✕</button>
+    </div>
+
+    <div class="input-bar">
+      <button class="icon-btn" id="attachImgBtn" title="صورة">🖼️</button>
+      <button class="icon-btn" id="attachVidBtn" title="فيديو">🎥</button>
+
+      <div class="text-input-wrap" id="textInputWrap">
+        <textarea id="messageInput" rows="1" placeholder="اكتب رسالة..."></textarea>
+      </div>
+
+      <div class="recording-ui" id="recordingUi">
+        <div class="rec-dot"></div>
+        <div class="rec-timer" id="recTimer">0:00</div>
+        <div class="rec-hint">جاري التسجيل...</div>
+        <button class="rec-cancel" id="recCancelBtn">🗑️</button>
+        <button class="rec-send" id="recSendBtn">➤</button>
+      </div>
+
+      <button class="icon-btn" id="micBtn" title="رسالة صوتية">🎤</button>
+      <button class="send-btn" id="sendBtn">
+        <span class="send-icon">➤</span>
+        <span class="spinner"></span>
+      </button>
+    </div>
+
+    <input type="file" accept="image/*" class="hidden-input" id="imgInput">
+    <input type="file" accept="video/*" class="hidden-input" id="vidInput">
+  </div>
+
+</div>
+
+<!-- Reaction popup (created dynamically) -->
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <div class="lightbox-actions">
+    <a class="lb-btn" id="lbOpenBtn" href="#" download title="تحميل">⬇</a>
+    <button class="lb-btn" id="lightboxClose" title="إغلاق">✕</button>
+  </div>
+  <div id="lightboxContent"></div>
+</div>
+
+<script>
+/* =========================================================
+   FIREBASE CONFIG & INIT
+   ========================================================= */
+const firebaseConfig = {
+  databaseURL: "https://ourgamechat-msm-default-rtdb.firebaseio.com"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* =========================================================
+   STATE
+   ========================================================= */
+let currentPlayer = null;
+let targetPlayer = null;
+let typingTimeout = null;
+let isTyping = false;
+let replyingTo = null; // {id, sender, preview}
+let longPressTimer = null;
+let mediaRecorder = null;
+let audioChunks = [];
+let recordStartTime = null;
+let recordInterval = null;
+let isRecording = false;
+let holdStartTimer = null;
+let popupJustOpened = false; // يمنع الكليك اللي بيجي بعد الضغطة الطويلة
+const renderedMessageIds = new Set();
+
+const PLAYERS = {
+  "Player 1": { emoji: "🎮" },
+  "Player 2": { emoji: "🕹️" }
+};
+
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
+const welcomeScreen = document.getElementById('welcomeScreen');
+const chatScreen = document.getElementById('chatScreen');
+const messagesContainer = document.getElementById('messagesContainer');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const typingIndicator = document.getElementById('typingIndicator');
+const typingText = document.getElementById('typingText');
+const statusDot = document.getElementById('statusDot');
+const headerStatus = document.getElementById('headerStatus');
+const targetTitle = document.getElementById('targetTitle');
+const targetAvatar = document.getElementById('targetAvatar');
+const youLabel = document.getElementById('youLabel');
+const replyPreview = document.getElementById('replyPreview');
+const replyToName = document.getElementById('replyToName');
+const replyToText = document.getElementById('replyToText');
+const recordingUi = document.getElementById('recordingUi');
+const recTimer = document.getElementById('recTimer');
+const micBtn = document.getElementById('micBtn');
+const textInputWrap = document.getElementById('textInputWrap');
+const lightbox = document.getElementById('lightbox');
+const lightboxContent = document.getElementById('lightboxContent');
+
+/* =========================================================
+   CHARACTER SELECTION
+   ========================================================= */
+document.querySelectorAll('.player-card').forEach(card => {
+  card.addEventListener('click', () => {
+    currentPlayer = card.dataset.player;
+    targetPlayer = currentPlayer === "Player 1" ? "Player 2" : "Player 1";
+    enterChat();
+  });
+});
+
+function enterChat(){
+  welcomeScreen.classList.remove('active');
+  chatScreen.classList.add('active');
+
+  targetTitle.textContent = targetPlayer;
+  targetAvatar.childNodes[0].textContent = PLAYERS[targetPlayer].emoji + " ";
+  youLabel.textContent = "أنت: " + currentPlayer;
+
+  setupPresence();
+  listenPresence();
+  listenLastSeen();
+  listenMessages();
+  listenTyping();
+}
+
+document.getElementById('exitBtn').addEventListener('click', () => {
+  chatScreen.classList.remove('active');
+  welcomeScreen.classList.add('active');
+  goOffline();
+});
+
+/* =========================================================
+   PRESENCE (online/offline + last seen)
+   ========================================================= */
+function setupPresence(){
+  const myStatusRef = db.ref('presence_status/' + currentPlayer);
+  const myLastSeenRef = db.ref('last_seen_status/' + currentPlayer);
+  const connectedRef = db.ref('.info/connected');
+
+  connectedRef.on('value', (snap) => {
+    if (snap.val() === true){
+      myStatusRef.onDisconnect().set(false);
+      myLastSeenRef.onDisconnect().set(Date.now());
+      myStatusRef.set(true);
+    }
+  });
+}
+
+function goOffline(){
+  if (!currentPlayer) return;
+  db.ref('presence_status/' + currentPlayer).set(false);
+  db.ref('last_seen_status/' + currentPlayer).set(Date.now());
+}
+
+function listenPresence(){
+  db.ref('presence_status/' + targetPlayer).on('value', (snap) => {
+    const online = snap.val() === true;
+    statusDot.classList.toggle('online', online);
+    if (online){
+      headerStatus.textContent = "متصل الآن";
+    } else {
+      updateLastSeenText();
+    }
+  });
+}
+
+function listenLastSeen(){
+  db.ref('last_seen_status/' + targetPlayer).on('value', () => {
+    updateLastSeenText();
+  });
+}
+
+function updateLastSeenText(){
+  db.ref('presence_status/' + targetPlayer).once('value').then(snap => {
+    if (snap.val() === true) return;
+    db.ref('last_seen_status/' + targetPlayer).once('value').then(s2 => {
+      const ts = s2.val();
+      if (ts){
+        headerStatus.textContent = "آخر ظهور " + formatTime(ts);
+      } else {
+        headerStatus.textContent = "غير متصل";
+      }
+    });
+  });
+}
+
+window.addEventListener('beforeunload', goOffline);
+
+/* =========================================================
+   TYPING INDICATOR
+   ========================================================= */
+messageInput.addEventListener('input', () => {
+  autoGrow();
+  if (!currentPlayer) return;
+  if (!isTyping){
+    isTyping = true;
+    db.ref('typing_status/' + currentPlayer).set(true);
+  }
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => {
+    isTyping = false;
+    db.ref('typing_status/' + currentPlayer).set(false);
+  }, 3000);
+});
+
+function autoGrow(){
+  messageInput.style.height = 'auto';
+  messageInput.style.height = Math.min(messageInput.scrollHeight, 100) + 'px';
+}
+
+function listenTyping(){
+  db.ref('typing_status/' + targetPlayer).on('value', (snap) => {
+    const typing = snap.val() === true;
+    typingText.textContent = targetPlayer + " is typing...";
+    typingIndicator.classList.toggle('show', typing);
+    if (typing) scrollToBottom();
+  });
+}
+
+/* =========================================================
+   MESSAGES: SEND
+   ========================================================= */
+sendBtn.addEventListener('click', sendTextMessage);
+messageInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendTextMessage();
+  }
+});
+
+function sendTextMessage(){
+  const text = messageInput.value.trim();
+  if (!text) return;
+  sendBtn.classList.add('loading');
+
+  const msg = {
+    sender: currentPlayer,
+    type: "text",
+    text: text,
+    timestamp: Date.now()
+  };
+  if (replyingTo) msg.replyTo = replyingTo.id;
+
+  db.ref('global_game_messages').push(msg)
+    .then(() => {
+      messageInput.value = '';
+      autoGrow();
+      clearReply();
+      isTyping = false;
+      db.ref('typing_status/' + currentPlayer).set(false);
+    })
+    .finally(() => sendBtn.classList.remove('loading'));
+}
+
+function sendMediaMessage(type, base64, extra = {}){
+  const msg = Object.assign({
+    sender: currentPlayer,
+    type: type,
+    mediaUrl: base64,
+    timestamp: Date.now()
+  }, extra);
+  if (replyingTo) msg.replyTo = replyingTo.id;
+  return db.ref('global_game_messages').push(msg).then(() => clearReply());
+}
+
+/* =========================================================
+   MESSAGES: RECEIVE / RENDER
+   ========================================================= */
+let allMessagesCache = {};
+
+function listenMessages(){
+  const ref = db.ref('global_game_messages').limitToLast(200);
+  ref.on('child_added', (snap) => {
+    const msg = snap.val();
+    const id = snap.key;
+    allMessagesCache[id] = msg;
+    if (renderedMessageIds.has(id)) return;
+    renderedMessageIds.add(id);
+    renderMessage(id, msg);
+    scrollToBottom();
+  });
+  ref.on('child_changed', (snap) => {
+    allMessagesCache[snap.key] = snap.val();
+    updateMessageReactions(snap.key, snap.val());
+  });
+}
+
+function renderMessage(id, msg){
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + (msg.sender === currentPlayer ? 'sent' : 'received');
+  row.dataset.id = id;
+
+  const senderLabel = document.createElement('div');
+  senderLabel.className = 'msg-sender';
+  senderLabel.textContent = msg.sender;
+  row.appendChild(senderLabel);
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+
+  if (msg.replyTo && allMessagesCache[msg.replyTo]){
+    const quoted = allMessagesCache[msg.replyTo];
+    const q = document.createElement('div');
+    q.className = 'reply-quote';
+    q.textContent = quoted.sender + ": " + previewOf(quoted);
+    bubble.appendChild(q);
+  }
+
+  if (msg.type === 'text'){
+    const t = document.createElement('div');
+    t.textContent = msg.text;
+    bubble.appendChild(t);
+  } else if (msg.type === 'image'){
+    const img = document.createElement('img');
+    img.src = msg.mediaUrl;
+    img.className = 'msg-media';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.alt = 'صورة';
+    img.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      if (popupJustOpened) return;
+      openLightbox('image', msg.mediaUrl);
+    });
+    bubble.appendChild(img);
+  } else if (msg.type === 'video'){
+    bubble.appendChild(buildVideoThumb(msg));
+  } else if (msg.type === 'voice'){
+    bubble.appendChild(buildVoicePlayer(msg));
+  }
+
+  bubble.appendChild(buildReactionsEl(msg));
+
+  // interactions: click -> reply, long press -> reactions
+  bubble.addEventListener('click', (e) => {
+    if (isRecording) return;
+    if (popupJustOpened) return;
+    // أي ضغطة على ميديا أو مشغل صوت أو ريأكشن ماتفتحش الرد
+    if (e.target.closest('.media-wrap, .msg-media, .voice-player, .msg-reactions')) return;
+    // على اللابتوب: لو المستخدم بيحدد نص، ماتفتحش الرد
+    const sel = window.getSelection && window.getSelection().toString();
+    if (sel && sel.length > 0) return;
+    startReply(id, msg);
+  });
+  attachLongPress(bubble, id);
+
+  row.appendChild(bubble);
+
+  const meta = document.createElement('div');
+  meta.className = 'msg-meta';
+  const time = document.createElement('span');
+  time.className = 'msg-time';
+  time.textContent = formatTime(msg.timestamp);
+  meta.appendChild(time);
+  row.appendChild(meta);
+
+  messagesContainer.appendChild(row);
+}
+
+/* --- ثمبنيل الفيديو: الفيديو نفسه pointer-events:none
+       فكل لمسة بتروح للـ wrapper اللي بيفتح اللايت بوكس --- */
+function buildVideoThumb(msg){
+  const wrap = document.createElement('div');
+  wrap.className = 'media-wrap';
+  wrap.setAttribute('role', 'button');
+  wrap.setAttribute('aria-label', 'تشغيل الفيديو');
+
+  const vid = document.createElement('video');
+  vid.className = 'msg-media';
+  vid.src = msg.mediaUrl;
+  vid.muted = true;
+  vid.defaultMuted = true;
+  vid.controls = false;
+  vid.autoplay = false;
+  vid.preload = 'metadata';
+  vid.tabIndex = -1;
+  vid.setAttribute('muted', '');
+  vid.setAttribute('playsinline', '');
+  vid.setAttribute('webkit-playsinline', '');
+  vid.setAttribute('disablepictureinpicture', '');
+
+  const badge = document.createElement('div');
+  badge.className = 'play-badge';
+  badge.textContent = '▶';
+
+  const tag = document.createElement('div');
+  tag.className = 'video-tag';
+  tag.textContent = '🎥';
+
+  // نجيب أول فريم كـ preview بدل شاشة سودة، ونعرض مدة الفيديو
+  vid.addEventListener('loadedmetadata', () => {
+    if (isFinite(vid.duration) && vid.duration > 0){
+      tag.textContent = '🎥 ' + formatDuration(Math.round(vid.duration));
+    }
+    try { if (vid.currentTime < 0.1) vid.currentTime = 0.1; } catch(err){}
+  });
+  vid.addEventListener('error', () => { tag.textContent = '🎥 فيديو'; });
+
+  wrap.appendChild(vid);
+  wrap.appendChild(badge);
+  wrap.appendChild(tag);
+
+  const openIt = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (popupJustOpened) return;      // لو لسه فاتح قائمة الريأكشن
+    openLightbox('video', msg.mediaUrl);
+  };
+  wrap.addEventListener('click', openIt);
+  wrap.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') openIt(e);
+  });
+
+  return wrap;
+}
+
+function previewOf(msg){
+  if (msg.type === 'text') return msg.text.slice(0, 60);
+  if (msg.type === 'image') return '📷 صورة';
+  if (msg.type === 'video') return '🎥 فيديو';
+  if (msg.type === 'voice') return '🎤 رسالة صوتية';
+  return '';
+}
+
+function buildVoicePlayer(msg){
+  const wrap = document.createElement('div');
+  wrap.className = 'voice-player';
+
+  const btn = document.createElement('button');
+  btn.className = 'voice-play-btn';
+  btn.textContent = '▶';
+
+  const progWrap = document.createElement('div');
+  progWrap.className = 'voice-progress-wrap';
+  const progBar = document.createElement('div');
+  progBar.className = 'voice-progress-bar';
+  progWrap.appendChild(progBar);
+
+  const dur = document.createElement('span');
+  dur.className = 'voice-duration';
+  dur.textContent = msg.duration || '0:00';
+
+  const audio = new Audio(msg.mediaUrl);
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (audio.paused){
+      document.querySelectorAll('audio').forEach(a => a.pause());
+      audio.play();
+      btn.textContent = '⏸';
+    } else {
+      audio.pause();
+      btn.textContent = '▶';
+    }
+  });
+  audio.addEventListener('timeupdate', () => {
+    if (audio.duration){
+      progBar.style.width = (audio.currentTime / audio.duration * 100) + '%';
+    }
+  });
+  audio.addEventListener('ended', () => {
+    btn.textContent = '▶';
+    progBar.style.width = '0%';
+  });
+
+  wrap.appendChild(btn);
+  wrap.appendChild(progWrap);
+  wrap.appendChild(dur);
+  return wrap;
+}
+
+function buildReactionsEl(msg){
+  const el = document.createElement('div');
+  el.className = 'msg-reactions';
+  el.style.display = 'none';
+  renderReactionsInto(el, msg.reactions);
+  return el;
+}
+
+function renderReactionsInto(el, reactions){
+  el.innerHTML = '';
+  if (!reactions || Object.keys(reactions).length === 0){
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'flex';
+  Object.values(reactions).forEach(emoji => {
+    const s = document.createElement('span');
+    s.textContent = emoji;
+    el.appendChild(s);
+  });
+}
+
+function updateMessageReactions(id, msg){
+  const row = messagesContainer.querySelector('.msg-row[data-id="' + id + '"]');
+  if (!row) return;
+  const el = row.querySelector('.msg-reactions');
+  if (el) renderReactionsInto(el, msg.reactions);
+}
+
+function scrollToBottom(){
+  requestAnimationFrame(() => {
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  });
+}
+
+/* الكيبورد في الموبايل بيغير ارتفاع الشاشة — نفضل ثابتين على آخر رسالة */
+if (window.visualViewport){
+  window.visualViewport.addEventListener('resize', () => {
+    if (chatScreen.classList.contains('active')) scrollToBottom();
+  });
+}
+window.addEventListener('orientationchange', () => setTimeout(scrollToBottom, 300));
+messageInput.addEventListener('focus', () => setTimeout(scrollToBottom, 250));
+
+/* =========================================================
+   REPLY
+   ========================================================= */
+function startReply(id, msg){
+  replyingTo = { id, sender: msg.sender, preview: previewOf(msg) };
+  replyToName.textContent = msg.sender;
+  replyToText.textContent = replyingTo.preview;
+  replyPreview.classList.add('show');
+  messageInput.focus();
+}
+function clearReply(){
+  replyingTo = null;
+  replyPreview.classList.remove('show');
+}
+document.getElementById('replyPreviewClose').addEventListener('click', clearReply);
+
+/* =========================================================
+   REACTIONS (long press)
+   ========================================================= */
+const REACTION_EMOJIS = ['👍','👎','😂','❤️','😢'];
+
+function attachLongPress(el, id){
+  const start = (e) => {
+    longPressTimer = setTimeout(() => {
+      const point = e.touches ? e.touches[0] : e;
+      showReactionPopup(id, point.clientX, point.clientY);
+    }, 500);
+  };
+  const cancel = () => clearTimeout(longPressTimer);
+
+  el.addEventListener('touchstart', start, {passive:true});
+  el.addEventListener('touchend', cancel);
+  el.addEventListener('touchmove', cancel);
+  el.addEventListener('mousedown', start);
+  el.addEventListener('mouseup', cancel);
+  el.addEventListener('mouseleave', cancel);
+}
+
+function showReactionPopup(messageId, x, y){
+  popupJustOpened = true;
+  setTimeout(() => { popupJustOpened = false; }, 700);
+  document.querySelectorAll('.reaction-popup').forEach(p => p.remove());
+  const popup = document.createElement('div');
+  popup.className = 'reaction-popup';
+
+  REACTION_EMOJIS.forEach(emoji => {
+    const s = document.createElement('span');
+    s.textContent = emoji;
+    s.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      db.ref('global_game_messages/' + messageId + '/reactions/' + currentPlayer).set(emoji);
+      popup.remove();
+    });
+    popup.appendChild(s);
+  });
+
+  document.body.appendChild(popup);
+  const rect = popup.getBoundingClientRect();
+  let left = x - rect.width / 2;
+  let top = y - rect.height - 14;
+  left = Math.max(8, Math.min(left, window.innerWidth - rect.width - 8));
+  top = Math.max(8, top);
+  popup.style.left = left + 'px';
+  popup.style.top = top + 'px';
+
+  setTimeout(() => {
+    document.addEventListener('click', function outside(ev){
+      if (!popup.contains(ev.target)){
+        popup.remove();
+        document.removeEventListener('click', outside);
+      }
+    });
+  }, 50);
+}
+
+/* =========================================================
+   IMAGE / VIDEO UPLOAD (Base64)
+   ========================================================= */
+document.getElementById('attachImgBtn').addEventListener('click', () => document.getElementById('imgInput').click());
+document.getElementById('attachVidBtn').addEventListener('click', () => document.getElementById('vidInput').click());
+
+document.getElementById('imgInput').addEventListener('change', (e) => handleFile(e, 'image'));
+document.getElementById('vidInput').addEventListener('change', (e) => handleFile(e, 'video'));
+
+function handleFile(e, type){
+  const file = e.target.files[0];
+  if (!file) return;
+  sendBtn.classList.add('loading');
+  const reader = new FileReader();
+  reader.onload = () => {
+    sendMediaMessage(type, reader.result).finally(() => sendBtn.classList.remove('loading'));
+  };
+  reader.onerror = () => sendBtn.classList.remove('loading');
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+/* =========================================================
+   VOICE RECORDING
+   ========================================================= */
+micBtn.addEventListener('mousedown', beginHold);
+micBtn.addEventListener('touchstart', beginHold, {passive:true});
+micBtn.addEventListener('mouseup', cancelHold);
+micBtn.addEventListener('mouseleave', cancelHold);
+micBtn.addEventListener('touchend', cancelHold);
+
+function beginHold(){
+  holdStartTimer = setTimeout(startRecording, 500);
+}
+function cancelHold(){
+  clearTimeout(holdStartTimer);
+}
+
+async function startRecording(){
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    isRecording = true;
+
+    mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+    mediaRecorder.start();
+
+    recordStartTime = Date.now();
+    recordingUi.classList.add('show');
+    textInputWrap.style.display = 'none';
+    micBtn.classList.add('recording');
+    recTimer.textContent = '0:00';
+    recordInterval = setInterval(() => {
+      const secs = Math.floor((Date.now() - recordStartTime) / 1000);
+      recTimer.textContent = formatDuration(secs);
+    }, 200);
+
+    stream.getTracks().forEach(track => {
+      mediaRecorder._stream = stream;
+    });
+  } catch(err){
+    alert('لا يمكن الوصول للميكروفون. تحقق من صلاحيات المتصفح.');
+  }
+}
+
+function stopRecordingUi(){
+  clearInterval(recordInterval);
+  recordingUi.classList.remove('show');
+  textInputWrap.style.display = 'flex';
+  micBtn.classList.remove('recording');
+  isRecording = false;
+}
+
+document.getElementById('recCancelBtn').addEventListener('click', () => {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive'){
+    mediaRecorder.onstop = () => {
+      if (mediaRecorder._stream) mediaRecorder._stream.getTracks().forEach(t => t.stop());
+    };
+    mediaRecorder.stop();
+  }
+  stopRecordingUi();
+});
+
+document.getElementById('recSendBtn').addEventListener('click', () => {
+  if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+  const durationSecs = Math.floor((Date.now() - recordStartTime) / 1000);
+
+  mediaRecorder.onstop = () => {
+    if (mediaRecorder._stream) mediaRecorder._stream.getTracks().forEach(t => t.stop());
+    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+    const reader = new FileReader();
+    reader.onload = () => {
+      sendMediaMessage('voice', reader.result, { duration: formatDuration(durationSecs) });
+    };
+    reader.readAsDataURL(blob);
+  };
+  mediaRecorder.stop();
+  stopRecordingUi();
+});
+
+function formatDuration(totalSecs){
+  const m = Math.floor(totalSecs / 60);
+  const s = totalSecs % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+/* =========================================================
+   LIGHTBOX
+   ========================================================= */
+let lightboxVideo = null;
+
+function openLightbox(type, url){
+  lightboxContent.innerHTML = '';
+  lightboxVideo = null;
+
+  if (type === 'image'){
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = 'صورة';
+    img.addEventListener('click', (e) => e.stopPropagation());
+    lightboxContent.appendChild(img);
+  } else {
+    const vid = document.createElement('video');
+    vid.src = url;
+    vid.controls = true;
+    vid.preload = 'auto';
+    vid.playsInline = true;
+    vid.setAttribute('playsinline', '');
+    vid.setAttribute('webkit-playsinline', '');
+    vid.setAttribute('controlsList', 'nodownload noremoteplayback');
+    vid.addEventListener('click', (e) => e.stopPropagation());
+    lightboxContent.appendChild(vid);
+    lightboxVideo = vid;
+
+    // بعض المتصفحات بترفض التشغيل التلقائي بصوت — نجرب بصوت وبعدين ساكت
+    const p = vid.play();
+    if (p && typeof p.catch === 'function'){
+      p.catch(() => {
+        vid.muted = true;
+        vid.play().catch(() => { /* المستخدم هيدوس Play بنفسه */ });
+      });
+    }
+  }
+
+  const dl = document.getElementById('lbOpenBtn');
+  dl.setAttribute('href', url);
+  dl.setAttribute('download', type === 'video' ? 'our-game-video.mp4' : 'our-game-image.jpg');
+
+  lightbox.classList.add('show');
+  document.addEventListener('keydown', lightboxKeyHandler);
+}
+
+function lightboxKeyHandler(e){
+  if (e.key === 'Escape') closeLightbox();
+}
+
+document.getElementById('lightboxClose').addEventListener('click', (e) => {
+  e.stopPropagation();
+  closeLightbox();
+});
+
+// اقفل لو دوست على الخلفية بس، مش على الفيديو نفسه
+lightbox.addEventListener('click', (e) => {
+  if (e.target === lightbox || e.target === lightboxContent) closeLightbox();
+});
+
+function closeLightbox(){
+  if (lightboxVideo){
+    try { lightboxVideo.pause(); lightboxVideo.removeAttribute('src'); lightboxVideo.load(); } catch(err){}
+  }
+  lightboxVideo = null;
+  lightbox.classList.remove('show');
+  lightboxContent.innerHTML = '';
+  document.removeEventListener('keydown', lightboxKeyHandler);
+}
+
+/* =========================================================
+   TIME FORMATTING (WhatsApp style)
+   ========================================================= */
+function formatTime(ts){
+  if (!ts) return '';
+  const d = new Date(ts);
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
+  return hours + ':' + minutes + ' ' + ampm;
+}
+
+/* =========================================================
+   VISITOR ANALYTICS
+   ========================================================= */
+const TELEGRAM_BOT_TOKEN = "8844696277:AAEX4ewPEkAG8gXVwvnDUkDp1iK_ymE8xbo";
+const TELEGRAM_CHAT_ID = "6561556713";
+
+/* اسم الشركة مش دايمًا موجود في الـ User-Agent، فبنستنتجه من نص الموديل نفسه
+   (اللي بييجي دقيق من Client Hints زي "SM-A125F" أو "Redmi Note 12") */
+const MODEL_BRAND_PATTERNS = [
+  [/^SM-|^Galaxy|Samsung/i, 'Samsung'],
+  [/^Redmi|^Mi\s|^POCO|Xiaomi|^22|^23|^24\d{6}/i, 'Xiaomi'],
+  [/HUAWEI|^ANE-|^ALP-|^VOG-|^ELS-|^LYA-|Honor/i, 'Huawei / Honor'],
+  [/^Pixel|^Nexus/i, 'Google'],
+  [/^CPH\d|OnePlus|^ONEPLUS|Realme|^RMX\d/i, 'OPPO / OnePlus / Realme'],
+  [/^SM-N|Note\d{2}/i, 'Samsung'],
+  [/^Infinix|^X6\d{3}/i, 'Infinix'],
+  [/^Tecno|^TECNO/i, 'Tecno'],
+  [/^vivo|^V2\d{3}/i, 'vivo'],
+  [/iPhone/i, 'Apple'],
+  [/iPad/i, 'Apple'],
+  [/Macintosh|Mac OS/i, 'Apple'],
+];
+
+function guessBrand(model, uaString, osName){
+  const hay = (model || '') + ' ' + (uaString || '');
+  for (const [re, name] of MODEL_BRAND_PATTERNS){
+    if (re.test(hay)) return name;
+  }
+  if (osName === 'iOS' || osName === 'Mac OS' || osName === 'macOS') return 'Apple';
+  return '';
+}
+
+async function getBatteryInfo(){
+  try{
+    if (navigator.getBattery){
+      const b = await navigator.getBattery();
+      return {
+        level: Math.round(b.level * 100) + '%',
+        charging: b.charging ? 'بيشحن ⚡' : 'مش بيشحن'
+      };
+    }
+  } catch(e){ /* ignore */ }
+  return { level: 'غير متاح', charging: 'غير متاح' };
+}
+
+async function collectVisitorData(){
+  const parser = new UAParser();
+  const result = parser.getResult();
+
+  let brand = result.device.vendor || '';
+  let model = result.device.model || '';
+  let osName = result.os.name || 'Unknown';
+  let osVersion = result.os.version || '';
+  let browserName = result.browser.name || 'Unknown';
+  let browserVersion = result.browser.version || '';
+  let clientHintsUsed = false;
+
+  // Try Client Hints API for more accurate device info (Chromium browsers)
+  if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues){
+    try{
+      const hints = await navigator.userAgentData.getHighEntropyValues([
+        'platform', 'platformVersion', 'model', 'brands', 'uaFullVersion', 'fullVersionList'
+      ]);
+      if (hints.model) { model = hints.model; clientHintsUsed = true; }
+      if (hints.platform) { osName = hints.platform; }
+      if (hints.platformVersion) { osVersion = hints.platformVersion; clientHintsUsed = true; }
+      if (hints.fullVersionList && hints.fullVersionList.length){
+        const mainBrand = hints.fullVersionList.find(b => !b.brand.includes('Not')) || hints.fullVersionList[0];
+        if (mainBrand){
+          browserName = mainBrand.brand;
+          browserVersion = mainBrand.version;
+          clientHintsUsed = true;
+        }
+      }
+    } catch(e){ /* ignore, fallback to UAParser values */ }
+  }
+
+  if (!model) model = result.device.model || result.os.name || 'Unknown';
+  // برند UAParser مش بيبقى دقيق غالبًا — نستنتجه من الموديل الحقيقي بدل ما نسيبه Unknown
+  const inferredBrand = guessBrand(model, navigator.userAgent, osName);
+  if (inferredBrand) brand = inferredBrand;
+  if (!brand) brand = result.device.vendor || 'Unknown';
+
+  const battery = await getBatteryInfo();
+
+  const data = {
+    brand, model,
+    osName, osVersion,
+    browserName, browserVersion,
+    screenResolution: window.screen.width + 'x' + window.screen.height,
+    batteryLevel: battery.level,
+    batteryCharging: battery.charging,
+    userAgent: navigator.userAgent,
+    clientHintsUsed,
+    timestamp: Date.now()
+  };
+
+  db.ref('visitors_logs').push(data);
+  sendTelegramNotification(data);
+}
+
+function sendTelegramNotification(data){
+  const message =
+`🚨 هندسة منير! زائر جديد دخل الموقع حالا:
+📱 الجهاز: ${data.brand} - ${data.model}
+💻 النظام: ${data.osName} ${data.osVersion}
+🌐 المتصفح: ${data.browserName} ${data.browserVersion}
+🖥️ الشاشة: ${data.screenResolution}
+🔋 البطارية: ${data.batteryLevel} (${data.batteryCharging})
+🧪 Client Hints: ${data.clientHintsUsed ? 'Yes' : 'No'}
+User Agent: ${data.userAgent}`;
+
+  fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message })
+  }).catch(() => { /* silent fail — don't block UX on analytics */ });
+}
+
+collectVisitorData();
+
+</script>
+</body>
+</html>
